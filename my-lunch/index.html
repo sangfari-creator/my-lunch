@@ -1,0 +1,1254 @@
+<title>나를 아는 점심메뉴</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap">
+<style>
+/* Layout: left = step panel (big controls), right = 360x800 phone preview scaled to fit. Stacked on phones with a sticky preview. */
+:root {
+  --bg: #F2F7EA;
+  --panel: #FFFFFF;
+  --fg: #22301E;
+  --muted: #566650;
+  --bd: #D3E2C6;
+  --brand: #2F6F2A;
+  --on-brand: #FFFFFF;
+  --soft: #E3F1D1;
+  --sky: #ADE1EC;
+  --sky-ink: #1C5F74;
+  --focus: #1D6FD8;
+  --font-display: "Malgun Gothic", "맑은 고딕", "Noto Sans KR", system-ui, sans-serif;
+  --font-body: "Noto Sans KR", system-ui, -apple-system, sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #172016; --panel: #222D21; --fg: #EDF4E8; --muted: #AAB9A3; --bd: #394936;
+    --brand: #8CCB7C; --on-brand: #11200E; --soft: #2F4129; --sky: #35697A; --sky-ink: #DDF4FA; --focus: #7DB4FF;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #172016; --panel: #222D21; --fg: #EDF4E8; --muted: #AAB9A3; --bd: #394936;
+  --brand: #8CCB7C; --on-brand: #11200E; --soft: #2F4129; --sky: #35697A; --sky-ink: #DDF4FA; --focus: #7DB4FF;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html { -webkit-tap-highlight-color: transparent; }
+body {
+  margin: 0; background: var(--bg); color: var(--fg); font-family: var(--font-body); font-size: 17px; line-height: 1.55;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 12px;
+}
+html, body { height: 100%; }
+/* Fixed header (title + progress); only the content below it scrolls */
+.app { height: 100%; min-height: 0; }
+.top, .stepper { flex: none; }
+.main { flex: 1; min-height: 0; grid-template-rows: minmax(0, 1fr); overflow: hidden; }
+.main > .panel { align-self: stretch; overflow-y: auto; overscroll-behavior: contain; }
+.main > .stage { align-self: start; }
+@media (max-width: 899px) {
+  .app > .main { display: block; overflow-y: auto; overscroll-behavior: contain; }
+  .main > .panel { overflow: visible; margin-top: 12px; }
+}
+button, input { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+.app { max-width: 1120px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
+.top { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 16px; }
+.top h1 { margin: 0; font-family: var(--font-display); font-weight: 700; font-size: 30px; line-height: 1.2; text-wrap: balance; }
+.top p { margin: 0; color: var(--muted); font-size: 15px; }
+
+/* Stepper */
+.stepper { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin: 0; padding: 0; list-style: none; }
+.stepper li { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.stepper .bar { height: 8px; border-radius: 99px; background: var(--bd); overflow: hidden; }
+.stepper .bar i { display: block; height: 100%; width: 0; background: var(--brand); border-radius: 99px; transition: width .3s; }
+.stepper .done .bar i, .stepper .now .bar i { width: 100%; }
+.stepper .lbl { font-size: 15px; font-weight: 700; color: var(--muted); display: flex; gap: 6px; align-items: center; min-width: 0; }
+.stepper .lbl b { flex: none; width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; font-size: 14px; background: var(--bd); color: var(--fg); }
+.stepper .now .lbl { color: var(--fg); }
+.stepper .now .lbl b, .stepper .done .lbl b { background: var(--brand); color: var(--on-brand); }
+.stepper .lbl span { overflow-wrap: anywhere; }
+
+/* Main grid */
+.main { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 24px; align-items: start; }
+.panel { background: var(--panel); border: 1px solid var(--bd); border-radius: 24px; padding: 20px; display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+.panel h2 { margin: 0; font-family: var(--font-display); font-weight: 700; font-size: 26px; line-height: 1.25; }
+.panel h3 { margin: 0; font-size: 17px; font-weight: 700; }
+.lead { margin: -8px 0 0; color: var(--muted); font-size: 16px; }
+.sec { display: flex; flex-direction: column; gap: 10px; }
+.hint { margin: 0; font-size: 15px; color: var(--muted); }
+.warn { color: #B3401A; font-weight: 700; }
+:root[data-theme="dark"] .warn { color: #FFA27C; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .warn { color: #FFA27C; } }
+.stage { display: flex; flex-direction: column; align-items: center; gap: 8px; min-width: 0; }
+.stage-cap { margin: 0; max-width: 360px; font-size: 14px; color: var(--muted); text-align: center; }
+
+/* Buttons */
+.btn { min-height: 48px; padding: 8px 18px; border-radius: 16px; border: 2px solid var(--brand); background: transparent; color: var(--brand); font-weight: 700; font-size: 17px; }
+.btn.primary { background: var(--brand); color: var(--on-brand); }
+.btn:disabled { opacity: .4; cursor: default; }
+.btn.big { min-height: 56px; font-size: 19px; }
+.choices { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.choice { width: 100%; min-height: 56px; text-align: left; display: flex; align-items: center; gap: 12px; padding: 8px 14px; border-radius: 16px; border: 2px solid var(--bd); background: var(--panel); }
+.choice[aria-pressed="true"], .choice[aria-checked="true"] { border-color: var(--brand); background: var(--soft); }
+.choice .ico { font-size: 28px; line-height: 1; flex: none; }
+.choice .tx { display: flex; flex-direction: column; min-width: 0; }
+.choice .tx b { font-size: 18px; }
+.choice .tx span { font-size: 14px; color: var(--muted); }
+.sizes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.size { min-height: 76px; border-radius: 16px; border: 2px solid var(--bd); background: var(--panel); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; padding: 6px; font-weight: 700; font-size: 16px; }
+.size[aria-pressed="true"] { border-color: var(--brand); background: var(--soft); }
+.size .g { display: block; border-radius: 4px; background: var(--sky); border: 2px dashed var(--sky-ink); }
+.size .g.S { width: 32px; height: 16px; } .size .g.M { width: 32px; height: 32px; } .size .g.L { width: 52px; height: 26px; }
+.size small { font-weight: 500; color: var(--muted); font-size: 13px; }
+.order { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 8px; }
+.order li { display: flex; align-items: center; gap: 6px; padding: 6px 6px 6px 12px; border: 2px solid var(--bd); border-radius: 16px; min-width: 0; }
+.order li.sel { border-color: var(--brand); background: var(--soft); }
+.order .n { flex: none; width: 28px; height: 28px; border-radius: 50%; background: var(--brand); color: var(--on-brand); display: grid; place-items: center; font-weight: 700; font-size: 15px; }
+.order .nm { flex: 1; min-width: 0; font-weight: 700; font-size: 16px; overflow-wrap: anywhere; }
+.order .nm small { display: block; color: var(--muted); font-weight: 400; font-size: 13px; }
+.ib { flex: none; width: 44px; height: 44px; border-radius: 12px; border: 2px solid var(--bd); background: var(--panel); display: grid; place-items: center; font-size: 18px; line-height: 1; }
+.ib:disabled { opacity: .35; cursor: default; }
+.ib.sz { width: 52px; font-size: 14px; font-weight: 700; }
+.ib.del { color: #B3401A; }
+.empty { padding: 14px; border: 2px dashed var(--bd); border-radius: 16px; color: var(--muted); text-align: center; }
+
+/* Material matrix (matches the reference sheet: rows = 재료, columns = Small / Medium / Large) */
+.matrix { --u: 34px; --g: 6px; display: flex; flex-direction: column; gap: 14px; }
+.mrow { display: flex; align-items: flex-end; flex-wrap: wrap; gap: 8px 12px; padding-bottom: 14px; border-bottom: 1px dashed var(--bd); }
+.mrow:last-child { border-bottom: 0; padding-bottom: 0; }
+.mname { margin: 0; flex: 0 0 76px; font-size: 14px; color: var(--muted); line-height: 1.35; align-self: center; }
+.mname b { font-size: 17px; color: var(--fg); }
+.mcol { display: flex; flex-direction: column; gap: 4px; }
+.mcap { font-size: 15px; font-weight: 500; }
+.tile { border: 0; padding: 4px; border-radius: 14px; background: var(--sky); color: var(--sky-ink); font-weight: 700; font-size: 13px; line-height: 1.25; display: grid; place-items: center; text-align: center; box-shadow: 0 6px 12px rgba(120,190,210,.35); }
+.tile.S { width: calc(2 * var(--u) + var(--g)); height: calc(var(--u) + 8px); }
+.tile.M { width: calc(2 * var(--u) + var(--g)); height: calc(2 * var(--u) + var(--g) + 8px); }
+.tile.W { width: calc(4 * var(--u) + 3 * var(--g)); height: calc(var(--u) + 8px); }
+.blk.sz-W { grid-column: span 4; grid-row: span 1; }
+.menu-W .menu-img { flex: none; width: 30%; }
+.menu-W .tx { padding: 8px 10px; display: flex; flex-direction: column; gap: 3px; min-width: 0; flex: 1; justify-content: center; }
+.cal-W { padding: 6px 10px; }
+.cal-W .wk { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; flex: 1; }
+.cal-W .wk span { display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 10px; background: color-mix(in srgb, var(--acc) 14%, var(--s-card)); font-size: 13px; font-weight: 700; line-height: 1.15; font-variant-numeric: tabular-nums; }
+.cal-W .wk span.off { box-shadow: none; opacity: .45; }
+.cal-W .wk span.today { background: var(--acc); color: var(--on-acc); box-shadow: none; }
+.cal-W .wk small { font-size: 10px; font-weight: 500; }
+.rank-W .rw { display: flex; gap: 6px; flex: 1; align-items: center; }
+.rank-W .rw span { flex: 1; text-align: center; font-size: 12px; padding: 5px 2px; border-radius: 99px; background: color-mix(in srgb, var(--acc) 22%, var(--s-card)); white-space: nowrap; }
+.gen-W { align-items: center; }
+.gen-W .gt { display: flex; flex-direction: column; min-width: 0; }
+.tile.L { width: calc(4 * var(--u) + 3 * var(--g)); height: calc(2 * var(--u) + var(--g) + 8px); }
+.tile:hover:not(:disabled) { transform: translateY(-2px); outline: 3px solid var(--brand); }
+.tile:active:not(:disabled) { transform: scale(.96); }
+.tile:disabled { opacity: .4; cursor: default; }
+.mcol.S { align-self: flex-end; }
+@media (max-width: 520px) { .matrix { --u: 24px; --g: 5px; } .mname { flex-basis: 100%; } .tile { font-size: 12px; } }
+
+.more { display: flex; flex-direction: column; gap: 10px; }
+.btn.more { width: 100%; }
+.xl { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; }
+.xl li { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; grid-template-areas: "i t s"; align-items: center; gap: 8px 10px; padding: 12px; border: 2px solid var(--bd); border-radius: 18px; min-width: 0; background: var(--panel); }
+.xl li .xi { grid-area: i; } .xl li .xt { grid-area: t; } .xl li .xs { grid-area: s; }
+.xl li .xs .xb { flex: 1; }
+.memo { font-size: 32px; line-height: 1.2; }
+.nav { position: sticky; bottom: 0; background: var(--panel); padding: 12px 0 4px; box-shadow: 0 -10px 12px -6px var(--panel); z-index: 15; }
+@media (max-width: 520px) { .xl { grid-template-columns: minmax(0, 1fr); } .xl li { grid-template-columns: auto minmax(0, 1fr); grid-template-areas: "i t" "s s"; } }
+.xl li.idea { border-style: dashed; }
+.xi { flex: none; font-size: 26px; line-height: 1; }
+.xt { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.xt b { font-size: 16px; }
+.xt small { font-size: 13px; color: var(--muted); line-height: 1.35; }
+.xs { flex: none; display: flex; gap: 6px; }
+.xb { min-width: 64px; height: 44px; padding: 0 10px; border-radius: 12px; border: 0; background: var(--sky); color: var(--sky-ink); font-weight: 700; font-size: 14px; }
+.xi .ic { width: 28px; height: 28px; color: var(--brand); }
+.xb:disabled { opacity: .4; cursor: default; }
+/* Generic + rank phone content */
+.ic { width: 1em; height: 1em; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; vertical-align: -.14em; flex: none; }
+.ic.fill { fill: currentColor; }
+.ic-img { display: inline-block; width: 1em; height: 1em; border-radius: .2em; background: center / cover; vertical-align: -.14em; flex: none; box-shadow: 0 0 0 1px rgba(0,0,0,.12); }
+.xi .ic-img { width: 34px; height: 34px; border-radius: 8px; }
+.gen .gi { color: var(--acc); } .gen .gi .ic { stroke-width: 1.6; }
+.rank .ch b .ic { color: var(--acc); }
+.rkb { display: inline-flex; align-items: center; justify-content: center; width: 1.25em; height: 1.25em; border-radius: 50%; font-size: .95em; font-weight: 800; background: color-mix(in srgb, var(--acc) 30%, var(--s-card)); color: var(--s-fg); line-height: 1; }
+.rkb.r1 { background: var(--acc); color: var(--on-acc); }
+.xgr .ic { width: 22px; height: 22px; } .xgd span .ic { width: 16px; height: 16px; color: var(--acc); } .xrow em .ic { width: 20px; height: 20px; color: var(--acc); }
+.xr1 small .ic { width: 13px; height: 13px; } .xr1 b .ic { width: 12px; height: 12px; color: var(--acc); }
+.xr { width: 100%; height: 100%; padding: 8px 10px; display: flex; flex-direction: column; gap: 5px; min-width: 0; overflow: hidden; justify-content: center; box-sizing: border-box; }
+.xr.xc { align-items: center; text-align: center; }
+.xr b { font-size: 13px; line-height: 1.25; } .xr small { font-size: 11px; color: var(--s-muted); line-height: 1.3; overflow-wrap: anywhere; }
+.xr .xcard, .xr.xcard { background: color-mix(in srgb, var(--s-fg) 6%, var(--s-card)); border-radius: 12px; padding: 7px 9px; display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.xr.xcard { height: auto; align-self: stretch; margin: 6px 8px; width: auto; flex: 1; justify-content: center; }
+.xbtn { border: 0; border-radius: 99px; background: var(--acc); color: var(--on-acc); font: inherit; font-weight: 700; font-size: 13px; padding: 9px 12px; width: 100%; }
+.xbtn.alt { background: var(--s-card); color: var(--s-fg); box-shadow: inset 0 0 0 1.5px var(--acc); }
+.xtabs { display: flex; gap: 4px; font-size: 11px; } .xtabs span, .xtabs b { flex: 1; text-align: center; padding: 3px 0; border-radius: 99px; background: color-mix(in srgb, var(--s-fg) 8%, var(--s-card)); font-weight: 400; font-size: 11px; } .xtabs b { background: var(--acc); color: var(--on-acc); }
+.xr1 { display: flex; justify-content: space-between; gap: 6px; align-items: baseline; }
+.xq { font-size: 12px; line-height: 1.35; font-weight: 700; }
+.xrow { flex-direction: row !important; align-items: center; gap: 8px !important; } .xrow > span { display: flex; flex-direction: column; min-width: 0; flex: 1; gap: 1px; } .xrow b { font-size: 12px; } .xrow em { font-style: normal; font-size: 16px; }
+.xth { flex: none; width: 38px; height: 34px; border-radius: 8px; background: color-mix(in srgb, var(--acc) 25%, var(--s-card)) center / cover; }
+.xq2 b { font-size: 22px; line-height: 1.2; word-break: keep-all; overflow-wrap: normal; } .xq2 small { word-break: keep-all; overflow-wrap: normal; } .xq2 { padding: 10px 14px; }
+.xtr { padding: 8px; } .xtr i { flex: 1; min-height: 0; border-radius: 12px; background: center / cover; } .xtr small { text-align: center; }
+.xl2 ul { margin: 0; padding-left: 14px; font-size: 12px; line-height: 1.45; }
+.xchips { display: flex; flex-wrap: wrap; gap: 4px; } .xchips span { font-size: 11px; padding: 2px 8px; border-radius: 99px; background: color-mix(in srgb, var(--acc) 28%, var(--s-card)); font-weight: 700; }
+.xgr { display: flex; gap: 3px; width: 100%; } .xgr span { flex: 1; display: flex; flex-direction: column; align-items: center; font-size: 18px; line-height: 1.2; padding: 4px 0; border-radius: 10px; background: color-mix(in srgb, var(--s-fg) 6%, var(--s-card)); } .xgr span small { font-size: 9px; } .xgr span.on { background: var(--acc); color: var(--on-acc); } .xgr span.on small { color: inherit; }
+.xgd { gap: 4px !important; } .xgd div { display: flex; align-items: center; gap: 5px; } .xgd u { flex: none; width: 4px; height: 16px; border-radius: 4px; background: color-mix(in srgb, var(--acc) var(--k), var(--s-card)); } .xgd span { font-size: 13px; flex: none; } .xgd small { font-size: 10.5px; color: var(--s-fg); }
+.xta { flex: 1; min-height: 34px; border-radius: 10px; background: color-mix(in srgb, var(--s-fg) 6%, var(--s-card)); font-size: 11px; color: var(--s-muted); padding: 7px 9px; box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--s-fg) 18%, transparent); }
+.xbar { display: flex; flex-direction: column; gap: 2px; } .xbar i, .xprog { display: block; height: 7px; border-radius: 99px; background: color-mix(in srgb, var(--acc) 22%, var(--s-card)); position: relative; overflow: hidden; width: 100%; } .xbar i::after, .xprog::after { content: ""; position: absolute; inset: 0 auto 0 0; width: var(--w); background: var(--acc); border-radius: 99px; }
+.xwarn { background: #fff3cd; color: #5c4400; border-radius: 12px; padding: 8px 10px; display: flex; flex-direction: column; gap: 2px; box-shadow: inset 0 0 0 1.5px #f0c75e; } .xwarn small { color: #7a5f12; }
+.xph { flex-direction: row !important; flex-wrap: wrap; gap: 6px !important; align-items: stretch; } .xph .xadd { flex: 1; border: 1.5px dashed color-mix(in srgb, var(--s-fg) 35%, transparent); border-radius: 10px; font-size: 11px; text-align: center; padding: 8px 2px; display: flex; align-items: center; justify-content: center; } .xph i { flex: 1; border-radius: 10px; background: center / cover; min-height: 50px; } .xph .xcap { flex-basis: 100%; }
+.xbt3 { display: flex; gap: 4px; width: 100%; } .xbt3 span { flex: 1; text-align: center; font-size: 11px; font-weight: 700; padding: 8px 2px; border-radius: 10px; background: color-mix(in srgb, var(--s-fg) 8%, var(--s-card)); white-space: nowrap; } .xbt3 span.on { background: var(--acc); color: var(--on-acc); }
+.xvb { position: relative; border-radius: 8px; background: color-mix(in srgb, var(--acc) 12%, var(--s-card)); overflow: hidden; padding: 5px 8px; } .xvb::before { content: ""; position: absolute; inset: 0 auto 0 0; width: var(--w); background: color-mix(in srgb, var(--acc) 38%, var(--s-card)); } .xvb b { position: relative; font-size: 12px; }
+.xst .xbig { width: 62px; height: 62px; border-radius: 50%; background: var(--acc); color: var(--on-acc); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 20px; }
+.gen { width: 100%; padding: 8px 10px; display: flex; gap: 8px; min-width: 0; }
+.gen .gi { font-size: 28px; line-height: 1.1; flex: none; }
+.gen b { font-size: 14px; line-height: 1.25; }
+.gen small { font-size: 12px; color: var(--s-muted); line-height: 1.3; overflow-wrap: anywhere; }
+.gen-S { align-items: center; }
+.gen-S .gt { display: flex; flex-direction: column; min-width: 0; }
+.gen-M { flex-direction: column; justify-content: center; gap: 3px; }
+.gen-M .gi { font-size: 34px; }
+.gen-L { align-items: center; gap: 12px; padding: 12px; }
+.gen-L .gl { flex: none; width: 34%; display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center; }
+.gen-L .gl .gi { font-size: 44px; }
+.gen-L .gr2 { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+.gen-L .gr2 span { font-size: 13px; line-height: 1.3; padding: 5px 10px; border-radius: 99px; background: color-mix(in srgb, var(--acc) 16%, var(--s-card)); overflow-wrap: anywhere; }
+.rank { width: 100%; padding: 8px 10px; display: flex; flex-direction: column; gap: 4px; justify-content: center; }
+.rank .ch { display: flex; justify-content: space-between; align-items: baseline; gap: 6px; }
+.rank .ch b { font-size: 13px; } .rank .ch span { font-size: 11px; color: var(--s-muted); }
+.rk { position: relative; display: flex; align-items: center; gap: 6px; font-size: 12px; padding: 3px 8px; border-radius: 99px; overflow: hidden; min-height: 22px; }
+.rk i { position: absolute; inset: 0 auto 0 0; width: var(--w); background: color-mix(in srgb, var(--acc) 30%, var(--s-card)); z-index: 0; }
+.rk > * { position: relative; z-index: 1; }
+.rk b { margin-left: auto; font-variant-numeric: tabular-nums; }
+.rank-pod { gap: 5px; }
+.rank-pod .pods { display: flex; align-items: flex-end; gap: 6px; flex: 1; min-height: 0; }
+.rank-pod .pd { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: flex-end; gap: 3px; height: 100%; }
+.rank-pod .pimg { display: block; width: 100%; height: 26px; border-radius: 6px; background: center / cover; box-shadow: 0 0 0 1px rgba(0,0,0,.1); flex: none; }
+.rank-pod .pbar { border-radius: 8px 8px 3px 3px; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding-top: 3px; font-size: 12px; line-height: 1.2; background: color-mix(in srgb, var(--acc) 30%, var(--s-card)); color: var(--s-fg); }
+.rank-pod .pbar small { font-size: 10px; opacity: .8; }
+.rank-pod .p1 .pbar { height: 46px; background: var(--acc); color: var(--on-acc); } .rank-pod .p2 .pbar { height: 34px; } .rank-pod .p3 .pbar { height: 26px; background: color-mix(in srgb, var(--acc) 18%, var(--s-card)); }
+.rank-pod .pcap { font-size: 10px; color: var(--s-muted); text-align: center; }
+.rank-L.rank-pod .pimg { height: 34px; } .rank-L.rank-pod .p1 .pbar { height: 52px; } .rank-L.rank-pod .p2 .pbar { height: 40px; } .rank-L.rank-pod .p3 .pbar { height: 30px; }
+.rank-L { gap: 8px; padding: 12px; } .rank-L.rank-pod { gap: 5px; } .rank-L .rk { font-size: 14px; min-height: 32px; } .rank-L .ch b { font-size: 15px; }
+
+/* 랭킹보드 강조스타일 (Figma 71:3) */
+.rank-hl { padding: 10px 12px 12px; gap: 8px; justify-content: flex-start; }
+.rank-hl .rhd { position: relative; display: flex; flex-direction: column; gap: 1px; flex: none; }
+.rank-hl .rhd small { font-size: 12px; font-weight: 700; color: var(--s-muted); } .rank-hl .rhd small .ic { color: var(--acc); }
+.rank-hl .rhd b { font-size: 16px; color: var(--s-fg); }
+.rank-hl .rhd em { position: absolute; right: 0; top: 0; font-style: normal; font-size: 12px; color: var(--s-muted); }
+.rank-hl .rcs-wrap { flex: 1; min-height: 0; display: flex; gap: 8px; flex-wrap: wrap; align-content: stretch; }
+.rc { position: relative; overflow: hidden; flex: 1 1 calc(50% - 4px); min-width: 0; min-height: 0; border-radius: 22px; color: #fff; background: linear-gradient(180deg, var(--g1), var(--g2)); }
+.rc1 { --g1: #dbb5e3; --g2: #af809f; } .rc2 { --g1: #f3c0b8; --g2: #ae857e; } .rc3 { --g1: #bcd7f0; --g2: #7d95b3; }
+.rcn { position: absolute; left: 8px; top: -8px; font-size: 96px; font-weight: 800; line-height: 1.2; color: rgba(255,255,255,.34); pointer-events: none; }
+.rci { position: absolute; right: 8px; top: 26px; width: 56px; height: 56px; border-radius: 16px; background: center / cover; transform: rotate(10deg); box-shadow: 0 6px 12px rgba(0,0,0,.3); }
+.rct { position: absolute; left: 12px; right: 12px; bottom: 54px; font-size: 16px; line-height: 1.25; color: #fff; }
+.rcs { position: absolute; left: 12px; right: 12px; bottom: 36px; font-size: 12px; line-height: 1.2; color: rgba(255,255,255,.88); }
+.rcp { position: absolute; left: 12px; bottom: 8px; min-width: 52px; height: 24px; padding: 0 10px; border-radius: 12px; background: rgba(255,255,255,.28); font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+.rank-M .rc { flex-basis: 100%; } .rank-M .rcn { font-size: 72px; } .rank-M .rci { width: 38px; height: 38px; top: 8px; right: 6px; } .rank-M .rct { font-size: 14px; bottom: 56px; } .rank-M .rcs { font-size: 11px; }
+.rank-M.rank-hl { padding: 8px; } .rank-M .rhd small { display: none; } .rank-M .rhd b { font-size: 13px; }
+.rank-L .rc { border-radius: 16px; } .rank-L .rcn { font-size: 64px; top: -4px; } .rank-L .rci { width: 44px; height: 44px; top: 10px; right: 10px; }
+.rank-L .rct { font-size: 14px; bottom: 32px; } .rank-L .rcs { bottom: 12px; font-size: 11px; } .rank-L .rcp { display: none; }
+.rank-L.rank-hl { padding: 8px 12px; gap: 6px; } .rank-L .rhd small { display: none; } .rank-L .rhd b { font-size: 14px; }
+.rank-X .rc { flex-basis: calc(50% - 4px); } .rank-X .rc3 { flex-basis: 100%; }
+.rank-T .rc, .rank-X .rc { min-height: 150px; } .rank-X .rcs-wrap { overflow: hidden; }
+/* 랭킹 스타일 모음 (Figma 75·76 시리즈) */
+.rk2 { position: relative; width: 100%; height: 100%; overflow: hidden; border-radius: var(--s-r, 16px); box-sizing: border-box; }
+.rk2-stack { background: #1f3a24; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 8px 10px; }
+.rk2-stack .b1 { position: absolute; right: -14px; top: -34px; width: 96px; height: 96px; border-radius: 50%; background: rgba(255,255,255,.08); }
+.rk2-stack .b2 { position: absolute; left: -24px; bottom: -34px; width: 80px; height: 80px; border-radius: 50%; background: rgba(255,184,69,.14); }
+.rk2-stack .sl { position: relative; width: 100%; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.rk2-stack .sp { display: block; box-sizing: border-box; height: 34px; line-height: 34px; padding: 0 10px; border-radius: 18px; text-align: center; font-size: 14px; font-weight: 700; color: #1f2b1b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; box-shadow: 0 4px 4px rgba(0,0,0,.25); }
+.rk2-stack .sp1 { background: linear-gradient(90deg, rgba(255,184,69,.88), rgba(237,212,163,.88)); }
+.rk2-stack .sp2 { background: linear-gradient(90deg, #ffb845, #edd4a3); }
+.rk2-stack .sp3 { background: linear-gradient(90deg, #ff8c45, #fbc69e); }
+.rk2-stack .sp4, .rk2-stack .sp5 { background: linear-gradient(90deg, #ff6b45, #edbba3); }
+.rk2-M.rk2-stack .sp { font-size: 12px; height: 30px; line-height: 30px; padding: 0 6px; } .rk2-M.rk2-stack .sl, .rk2-L.rk2-stack .sl { gap: 6px; } .rk2-L.rk2-stack .sp { height: 32px; line-height: 32px; }
+.rk2-stack .smp { position: absolute; left: 12px; bottom: 6px; font-size: 12px; color: rgba(255,255,255,.65); }
+.rk2-grad { display: flex; flex-direction: column; justify-content: center; gap: 7px; padding: 8px 10px; background: color-mix(in srgb, var(--s-card) 94%, #cfe3c4); }
+.gr-row { position: relative; flex: 1 1 0; min-height: 0; max-height: 68px; border-radius: 22px; display: flex; align-items: center; gap: 12px; padding: 0 14px 0 12px; color: #fff; overflow: hidden; }
+.gr1 { background: linear-gradient(90deg, #c4733f, #e9a57c); } .gr2 { background: linear-gradient(90deg, #d6403f, #f28c80); } .gr3 { background: linear-gradient(90deg, #8450ae, #be8fda); } .gr4 { background: linear-gradient(90deg, #2f9a8f, #7fd0c3); }
+.gr-row .gp { flex: none; width: 48px; height: 48px; border-radius: 14px; background: center / cover; transform: rotate(8deg); box-shadow: 0 3px 6px rgba(0,0,0,.25); }
+.gr-row .gt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; } .gr-row .gt b { font-size: 15px; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } .gr-row .gt small { font-size: 12px; color: rgba(255,255,255,.85); white-space: nowrap; }
+.gr-row em { font-style: normal; font-size: 26px; color: rgba(255,255,255,.75); line-height: 1; }
+.rk2-M.rk2-grad { padding: 6px; } .rk2-M .gr-row { padding: 0 8px; gap: 8px; } .rk2-M .gr-row .gp { width: 38px; height: 38px; } .rk2-M .gr-row .gt b { font-size: 13px; } .rk2-M .gr-row .gt small { font-size: 11px; white-space: normal; } .rk2-M .gr-row em { display: none; }
+.rk2-obj { display: grid; grid-template-columns: repeat(2, 1fr); grid-auto-rows: 1fr; gap: 8px; padding: 10px; background: color-mix(in srgb, var(--s-card) 94%, #cfe3c4); }
+.rk2-M.rk2-obj { grid-template-columns: 1fr; padding: 8px; }
+.ob { border-radius: 18px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; padding: 4px; min-width: 0; color: #4a2a5a; }
+.ob1 { background: linear-gradient(180deg, #d6b6ec, #b182a1); } .ob2 { background: linear-gradient(180deg, #f2bfb7, #ba8f89); } .ob3 { background: linear-gradient(180deg, #f6bf80, #c59660); } .ob4 { background: linear-gradient(180deg, #e8b9d0, #b2817e); }
+.ob .ring { width: 58px; height: 58px; border-radius: 50%; border: 3px solid rgba(255,255,255,.75); background: rgba(255,255,255,.22); display: grid; place-items: center; flex: none; margin-bottom: 4px; }
+.ob .ring i { width: 42px; height: 42px; border-radius: 50%; background: center / cover; }
+.ob b { font-size: 13px; max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } .ob small { font-size: 12px; opacity: .9; }
+.rk2-mood { background: linear-gradient(180deg, #2b78a8, #ffcfc4); }
+.rk2-mood i { position: absolute; border-radius: 50%; aspect-ratio: 1; }
+.rk2-mood .m1 { left: 31%; top: -2%; width: 41%; background: radial-gradient(circle at 40% 30%, #cfe3f5, #4aa0f0); }
+.rk2-mood .m2 { right: -4%; top: 2%; width: 38%; background: linear-gradient(160deg, #a8b87a, #2b78c0); }
+.rk2-mood .m3 { left: 22%; top: 28%; width: 34%; background: radial-gradient(circle, #ff8b6b, rgba(255,139,107,.2) 70%); }
+.rk2-mood .m4 { left: 4%; top: 5%; width: 30%; aspect-ratio: 1.4; border-radius: 50%; transform: rotate(25deg); background: linear-gradient(135deg, #ff7a59, #ffc2a5); }
+.rk2-mood .ml { position: absolute; left: 12px; right: 12px; bottom: 10px; display: flex; flex-direction: column; gap: 6px; }
+.rk2-mood .ml span { display: block; height: 28px; line-height: 28px; border-radius: 14px; padding: 0 14px; background: rgba(255,255,255,.55); color: #1b2a3a; font-size: 13px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rk2-M.rk2-mood .ml { left: 8px; right: 8px; } .rk2-M.rk2-mood .ml span { padding: 0 8px; font-size: 12px; }
+/* 친구리뷰 (Figma 81:3) */
+.frw { padding: 8px 10px; gap: 8px; justify-content: center; }
+.fr-card { position: relative; flex: 1 1 0; max-height: 100px; min-height: 64px; border-radius: 24px; display: flex; align-items: stretch; overflow: hidden; color: #fff; }
+.fr0 { background: linear-gradient(90deg, #8a55b5, #6b3b96); } .fr1 { background: linear-gradient(90deg, #f5a03a, #e0780c); }
+.fr-av { position: relative; flex: none; width: 96px; }
+.fr-av .ring, .fr-av .av { position: absolute; left: 12px; top: 50%; width: 72px; height: 72px; transform: translateY(-50%); }
+.fr-av .av { transform: translateY(-50%) rotate(15deg); }
+.fr-av .bd { position: absolute; left: 62px; bottom: 8px; width: 30px; height: 30px; border: 2px solid #fff; border-radius: 9px; background: center / cover; }
+.fr-tx { flex: 1; min-width: 0; background: rgba(0,0,0,.1); padding: 10px 12px; display: flex; flex-direction: column; gap: 3px; }
+.fr-tx b { font-size: 15px; color: #fff; line-height: 1.2; }
+.fr-tx > span { font-size: 12px; line-height: 1.35; color: rgba(255,255,255,.95); overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; word-break: keep-all; }
+.fr-tx small { margin-top: auto; font-size: 11px; color: rgba(255,255,255,.8); }
+.frw.c .fr-card { flex-direction: column; max-height: none; }
+.frw.c .fr-av { width: 100%; height: 76px; }
+.frw.c .fr-av .ring, .frw.c .fr-av .av { left: 50%; width: 56px; height: 56px; margin-left: -28px; }
+.frw.c .fr-av .bd { left: 50%; margin-left: 8px; bottom: 6px; width: 24px; height: 24px; }
+.frw.c .fr-tx { justify-content: center; }
+.sz-L .fr-card { min-height: 0; border-radius: 20px; } .sz-L .fr-av { width: 80px; } .sz-L .fr-av .ring, .sz-L .fr-av .av { left: 8px; width: 56px; height: 56px; } .sz-L .fr-av .bd { left: 44px; bottom: 6px; width: 24px; height: 24px; } .sz-L .fr-tx { padding: 6px 12px; gap: 1px; } .sz-L .fr-tx b { font-size: 14px; } .sz-L .fr-tx > span { -webkit-line-clamp: 1; } .sz-L .fr-tx small { margin-top: 0; }
+.emo.sk { touch-action: none; cursor: grab; }
+.pst { position: absolute; z-index: 8; transform: translate(-50%, -50%); line-height: 1; cursor: grab; touch-action: none; user-select: none; -webkit-user-select: none; filter: drop-shadow(0 3px 2px rgba(0,0,0,.25)); padding: 4px; }
+.pst.sel { outline: 3px dashed #1D6FD8; outline-offset: 2px; border-radius: 12px; }
+.pst.lock { pointer-events: none; cursor: default; animation: wig 2.8s ease-in-out infinite; animation-delay: var(--d, 0s); }
+@keyframes wig { 0%, 100% { transform: translate(-50%, -50%) rotate(-3deg) scale(1); } 25% { transform: translate(-48%, -52%) rotate(2deg) scale(1.03); } 50% { transform: translate(-50%, -49%) rotate(3deg) scale(.98); } 75% { transform: translate(-52%, -51%) rotate(-2deg) scale(1.02); } }
+.phandle { position: absolute; right: -22px; bottom: -22px; width: 44px; height: 44px; border-radius: 50%; border: 3px solid #fff; background: #1D6FD8; color: #fff; font-size: 20px; display: grid; place-items: center; cursor: nwse-resize; touch-action: none; filter: none; }
+.rng { width: 100%; height: 44px; accent-color: var(--brand); }
+.pdel { position: absolute; right: -22px; top: -22px; width: 44px; height: 44px; border-radius: 50%; border: 3px solid #fff; background: #D9442A; color: #fff; font-size: 18px; font-weight: 700; display: grid; place-items: center; padding: 0; filter: none; }
+.sghost { position: fixed; z-index: 1000; pointer-events: none; font-size: 48px; line-height: 1; transform: translate(-50%, -50%) scale(1); opacity: .8; transition: transform .1s; }
+.sghost.ok { transform: translate(-50%, -50%) scale(1.25); opacity: 1; }
+
+/* Skin picker */
+.skin { align-items: stretch; padding: 10px; --acc: var(--s-acc); }
+.skin .mini { flex: none; width: 92px; height: 72px; border-radius: 12px; padding: 8px; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 5px; background: var(--s-bgfull); border: 1px solid var(--bd); overflow: hidden; }
+.skin .mini .mat { min-height: 0; }
+.skin .mini .a { grid-column: 1 / 3; }
+.skin .tx { justify-content: center; }
+
+/* Refine controls */
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { min-height: 48px; padding: 6px 14px; border-radius: 999px; border: 2px solid var(--bd); background: var(--panel); font-weight: 700; font-size: 16px; display: inline-flex; align-items: center; gap: 6px; }
+.chip[aria-pressed="true"] { border-color: var(--brand); background: var(--soft); }
+.swatch { width: 48px; height: 48px; border-radius: 50%; border: 3px solid var(--panel); box-shadow: 0 0 0 2px var(--bd); display: grid; place-items: center; font-size: 12px; font-weight: 700; padding: 0; }
+.swatch[aria-pressed="true"] { box-shadow: 0 0 0 3px var(--fg); }
+.swatch.auto { background: var(--panel); color: var(--fg); font-size: 12px; line-height: 1.1; }
+.emo { width: 52px; height: 52px; border-radius: 14px; border: 2px solid var(--bd); background: var(--panel); font-size: 28px; line-height: 1; display: grid; place-items: center; }
+.emo[aria-pressed="true"] { border-color: var(--brand); background: var(--soft); }
+.field { display: flex; flex-direction: column; gap: 6px; }
+.field input { min-height: 52px; padding: 8px 14px; border-radius: 14px; border: 2px solid var(--bd); background: var(--panel); font-size: 19px; width: 100%; }
+.picked { display: flex; gap: 6px; align-items: center; font-size: 15px; color: var(--muted); }
+
+/* Nav */
+.nav { display: flex; gap: 10px; margin-top: auto; padding-top: 4px; }
+.nav .btn { flex: 1; }
+.nav .btn.primary { flex: 1.6; }
+.done-card { background: var(--soft); border-radius: 18px; padding: 14px 16px; display: flex; flex-direction: column; gap: 6px; font-size: 16px; }
+.done-card b { font-size: 18px; }
+.pop { animation: pop .5s ease-out; }
+@keyframes pop { from { transform: scale(.94); opacity: .4; } to { transform: scale(1); opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+
+/* ============ PHONE ============ */
+.phone-wrap { position: relative; flex: none; }
+.screen {
+  position: absolute; left: 0; top: 0; width: 360px; height: 800px; transform-origin: 0 0; overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain;
+  border-radius: 40px; box-shadow: 0 0 0 8px #2B312A, 0 14px 30px rgba(0,0,0,.28);
+  background: var(--s-bgfull); color: var(--s-fg); font-family: var(--font-body); font-size: 14px; line-height: 1.4;
+  --acc: var(--user-acc, var(--s-acc)); --on-acc: var(--user-on, var(--s-on));
+  display: flex; flex-direction: column;
+}
+.screen > * { flex: none; }
+/* Skins (device materials) */
+.skin-wire { --s-bgfull: #F6FAFC; --s-card: #F6FAFC; --s-fg: #24586B; --s-muted: #5B8393; --s-acc: #2F8DB0; --s-on: #fff; }
+.skin-haru { --s-bgfull: #F5F3EE; --s-card: #FFFFFF; --s-fg: #2E3A2B; --s-muted: #566A52; --s-acc: #3D7A34; --s-on: #FFFFFF; --s-bdc: #D3E2C6; --s-bw: 1.5px; --s-r: 20px; --s-sh: 0 3px 0 rgba(61,122,52,.12); --s-head: #FFFFFF; }
+.skin-jelly { --s-bgfull: linear-gradient(170deg, #FFE6F2, #E8E4FF 60%, #DDF4FF); --s-card: linear-gradient(180deg, #FFFFFF 0%, color-mix(in srgb, var(--acc) 22%, #fff) 100%); --s-fg: #4A2A45; --s-muted: #7B5A76; --s-acc: #D6407A; --s-on: #FFFFFF; --s-bdc: #FFFFFF; --s-bw: 3px; --s-r: 30px; --s-sh: 0 10px 16px -6px color-mix(in srgb, var(--acc) 55%, transparent), inset 0 -8px 12px rgba(255,255,255,.7), inset 0 6px 8px rgba(255,255,255,.95); --s-head: transparent; }
+.skin-craft { --s-bgfull: repeating-linear-gradient(45deg, #DCC49A 0 6px, #D6BC90 6px 12px); --s-card: #FBF3DF; --s-fg: #4A3520; --s-muted: #6F5A3D; --s-acc: #A85A14; --s-on: #FFFFFF; --s-bdc: #8A6A3B; --s-bs: dashed; --s-bw: 2px; --s-r: 8px; --s-sh: 4px 4px 0 rgba(90,60,20,.35); --s-head: #FBF3DF; }
+/* 투명 (Transparent): 배경이 그대로 비치는 맑은 카드. 흐림(blur) 없이 얇은 테두리만 둬요. */
+.skin-glass { --s-bgfull: linear-gradient(150deg, #9CC9FF 0%, #C9B6FF 50%, #FFC6E0 100%); --s-card: rgba(255,255,255,.12); --s-fg: #14223F; --s-muted: #2E4268; --s-acc: #2563EB; --s-on: #FFFFFF; --s-bdc: rgba(255,255,255,.9); --s-bw: 1.5px; --s-r: 22px; --s-sh: none; }
+/* 몰피즘 (Neumorphism): 배경과 같은 색 위에 밝고 어두운 그림자 두 개로 살짝 솟은 느낌 */
+.skin-neu { --s-bgfull: #E4EAF0; --s-card: #E4EAF0; --s-fg: #3A4658; --s-muted: #66748A; --s-acc: #4B78C8; --s-on: #FFFFFF; --s-bdc: transparent; --s-bw: 0px; --s-r: 22px; --s-sh: 6px 6px 12px #BCC4CE, -6px -6px 12px #FFFFFF; }
+.skin-neu .mat { border: 0; }
+.skin-illust { --s-bgfull: radial-gradient(rgba(255,255,255,.4) 2px, transparent 2.6px) 0 0 / 18px 18px, linear-gradient(135deg, #FF5E8A 0%, #FFB400 40%, #3DD6A0 75%, #4D8BFF 100%); --s-card: #FFFFFF; --s-fg: #3A2E5A; --s-muted: #5A4C80; --s-acc: #E2503F; --s-on: #FFFFFF; --s-bdc: #3A2E5A; --s-bw: 3px; --s-r: 22px 30px 20px 28px / 26px 20px 28px 22px; --s-sh: 5px 6px 0 #3A2E5A; }
+/* 스푸키: 어두운 네온사인 배경 + 격자 + 빛나는 테두리와 장식 */
+.skin-spooky { --s-bgfull: radial-gradient(circle at 15% 10%, rgba(255,60,172,.35), transparent 40%), radial-gradient(circle at 85% 90%, rgba(0,229,255,.28), transparent 45%), repeating-linear-gradient(0deg, rgba(255,138,31,.08) 0 1px, transparent 1px 26px), repeating-linear-gradient(90deg, rgba(255,138,31,.08) 0 1px, transparent 1px 26px), #14091F; --s-card: rgba(20,9,31,.72); --s-fg: #FFF4E6; --s-muted: #FFB87A; --s-acc: #FF8A1F; --s-on: #1A1024; --s-bdc: #FF8A1F; --s-bw: 2px; --s-r: 18px; --s-sh: 0 0 12px rgba(255,138,31,.6), inset 0 0 10px rgba(255,60,172,.25); }
+.skin-spooky::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 4px; background: linear-gradient(90deg, #FF3CAC, #FF8A1F, #00E5FF); box-shadow: 0 0 10px #FF3CAC; z-index: 14; pointer-events: none; }
+.skin-spooky::after { content: "🦇 🎃 👻 🕸️ 🦇"; position: absolute; left: 0; right: 0; bottom: 10px; text-align: center; font-size: 20px; letter-spacing: 4px; opacity: .9; filter: drop-shadow(0 0 6px #FF8A1F); pointer-events: none; z-index: 14; }
+.skin-spooky .ph-head .nm { text-shadow: 0 0 10px var(--acc); }
+.skin-illust .ph-head .nm { text-shadow: 2px 2px 0 #F7A8C4; }
+.screen { overflow: hidden; }
+.screen > .ph-scroll { flex: 1 1 0; min-height: 0; overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; position: relative; }
+.ph-fixed { position: relative; z-index: 12; background: var(--s-bgfull); box-shadow: 0 6px 8px -6px rgba(0,0,0,.25); }
+.ph-inner { position: relative; display: flex; flex-direction: column; }
+.ph-inner > .grid { flex: none; }
+.ph-inner > .ph-deco.bot { margin-top: auto; }
+.pgline { position: absolute; left: 0; right: 0; height: 0; border-top: 2px dashed color-mix(in srgb, var(--s-fg) 35%, transparent); pointer-events: none; z-index: 1; }
+.pgline span { position: absolute; right: 12px; top: 4px; font-size: 11px; font-weight: 700; color: var(--s-muted); }
+.ph-deco { display: flex; gap: 8px; padding: 16px 20px 0; font-size: 26px; line-height: 1.1; }
+.ph-deco.bot { padding: 0 20px 18px; justify-content: center; }
+.ph-deco + .ph-head { padding-top: 6px; }
+.mood-box { padding: 12px; border: 2px dashed var(--bd); border-radius: 18px; }
+.mat { position: relative; background: var(--s-card); color: var(--s-fg); border: var(--s-bw, 1.5px) var(--s-bs, solid) var(--s-bdc, #ccc); border-radius: var(--s-r, 16px); box-shadow: var(--s-sh, none); }
+.skin-jelly .mat::after { content: ""; position: absolute; left: 10%; top: 7%; width: 42%; height: 14%; border-radius: 99px; background: rgba(255,255,255,.6); pointer-events: none; }
+.skin-craft .mat::before { content: ""; position: absolute; inset: 3px; border: 1px dashed rgba(138,106,59,.45); border-radius: 5px; pointer-events: none; }
+
+.ph-head { display: flex; flex-direction: column; gap: 2px; padding: 26px 20px 10px; }
+.ph-head .nm { font-family: var(--font-display); font-weight: 700; font-size: 26px; line-height: 1.2; overflow-wrap: anywhere; }
+.ph-head .dt { font-size: 13px; color: var(--s-muted); font-weight: 500; }
+.skin-wire .ph-head .nm { color: #7FA7B5; font-size: 18px; }
+.skin-wire .ph-head .ph-bar { height: 12px; width: 120px; border-radius: 99px; background: rgba(173,225,236,.7); margin-bottom: 4px; }
+.grid { --row: 76px; display: grid; grid-template-columns: repeat(4, 1fr); grid-auto-rows: var(--row); gap: 8px; padding: 16px 16px 24px; }
+.blk { position: relative; min-width: 0; min-height: 0; user-select: none; -webkit-user-select: none; display: flex; }
+.blk.sz-S { grid-column: span 2; grid-row: span 1; }
+.blk.sz-M { grid-column: span 2; grid-row: span 2; }
+.blk.sz-L { grid-column: span 4; grid-row: span 2; }
+.blk.sz-T { grid-column: span 4; grid-row: span 3; }
+.blk.sz-X { grid-column: span 4; grid-row: span 4; }
+.blk .body { position: relative; width: 100%; height: 100%; border-radius: inherit; overflow: hidden; }
+/* Wireframe */
+.blk.wire { cursor: grab; }
+.blk.wire .lab { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; text-align: center; padding: 4px 6px; z-index: 1; }
+.blk.wire .lab b { font-size: 15px; line-height: 1.2; }
+.blk.wire .lab small { font-size: 12px; opacity: .85; font-weight: 700; }
+.blk.wire .lab .ico { font-size: 22px; line-height: 1; opacity: .8; }
+.skin-wire .blk.wire { background: rgba(173,225,236,.4); border: 2px dashed rgba(36,88,107,.5); border-radius: 16px; color: #1F5568; box-shadow: 0 6px 14px rgba(120,190,210,.25); }
+.skin-wire .blk.wire .lab .ico { filter: grayscale(.4); opacity: .6; }
+.blk.sel { outline: 3px solid var(--focus); outline-offset: 2px; }
+.blk.dragging { opacity: .35; }
+.dph { border: 2px dashed var(--focus); border-radius: 16px; background: color-mix(in srgb, var(--focus) 14%, transparent); pointer-events: none; z-index: 2; }
+.dph.bad { border-color: #c0392b; background: color-mix(in srgb, #c0392b 14%, transparent); }
+.blk.drop { outline: 3px dashed var(--focus); outline-offset: 3px; }
+.grip { position: absolute; left: 0; top: 0; width: 44px; height: 44px; display: grid; place-items: start; padding: 4px 0 0 6px; font-size: 18px; line-height: 1; opacity: .7; touch-action: none; z-index: 4; cursor: grab; }
+.rhandle { position: absolute; right: 0; bottom: 0; width: 44px; height: 44px; display: flex; align-items: flex-end; justify-content: flex-end; padding: 4px; touch-action: none; cursor: nwse-resize; z-index: 4; }
+.rhandle::after { content: "⤡"; width: 26px; height: 26px; border-radius: 50%; background: var(--focus); color: #fff; display: grid; place-items: center; font-size: 15px; box-shadow: 0 1px 4px rgba(0,0,0,.3); }
+.del { position: absolute; right: -6px; top: -10px; width: 44px; height: 44px; border-radius: 50%; border: 3px solid #fff; background: #D9442A; color: #fff; font-size: 18px; font-weight: 700; display: grid; place-items: center; z-index: 6; padding: 0; box-shadow: 0 2px 6px rgba(0,0,0,.3); }
+.ghost { position: fixed; z-index: 1000; pointer-events: none; opacity: .85; transform: scale(1.03); box-shadow: 0 10px 24px rgba(0,0,0,.35); border-radius: 16px; }
+.phone-empty { margin: 8px 16px; padding: 28px 16px; border: 2px dashed rgba(36,88,107,.4); border-radius: 18px; text-align: center; color: #5B8393; font-weight: 700; }
+/* Final content */
+.fc { position: absolute; inset: 0; display: flex; }
+.menu-img { background-size: cover; background-position: center; }
+.fc .tt { font-weight: 700; font-size: 14px; line-height: 1.25; }
+.fc .sm { font-size: 12px; color: var(--s-muted); }
+.menu-S .menu-img { position: absolute; inset: 0; }
+.menu-S .ov { position: absolute; left: 0; right: 0; bottom: 0; padding: 18px 10px 7px; color: #fff; background: linear-gradient(transparent, rgba(0,0,0,.72)); display: flex; flex-direction: column; }
+.menu-S .ov b { font-size: 13px; } .menu-S .ov span { font-size: 12px; }
+.menu-M { flex-direction: column; }
+.menu-M .menu-img { flex: none; height: 82px; }
+.menu-M .tx { padding: 7px 10px; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.menu-L .menu-img { flex: none; width: 46%; }
+.menu-L .tx { padding: 10px 12px; display: flex; flex-direction: column; gap: 3px; min-width: 0; flex: 1; }
+.menu-L ul { margin: 0; padding: 0; list-style: none; font-size: 13px; display: flex; flex-direction: column; gap: 1px; }
+.menu-L li::before { content: "• "; color: var(--acc); font-weight: 700; }
+.badge { align-self: flex-start; font-size: 11px; font-weight: 700; background: var(--acc); color: var(--on-acc); border-radius: 99px; padding: 1px 8px; }
+.cal { width: 100%; padding: 8px 10px; display: flex; flex-direction: column; gap: 3px; }
+.cal .ch { display: flex; justify-content: space-between; align-items: baseline; gap: 6px; }
+.cal .ch b { font-size: 13px; }
+.cal .ch span { font-size: 11px; color: var(--s-muted); }
+.cal .gr { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; flex: 1; min-height: 0; align-content: stretch; }
+.cal .gr > * { display: grid; place-items: center; font-size: 10px; line-height: 1; border-radius: 99px; font-variant-numeric: tabular-nums; min-width: 0; }
+.cal .gr .wd { color: var(--s-muted); font-weight: 700; }
+.cal .gr .d { background: color-mix(in srgb, var(--acc) var(--p, 0%), var(--s-card)); color: var(--s-fg); font-weight: 500; }
+.cal .gr .d.off { opacity: .4; background: none; }
+.cal .gr .d.fut { background: none; box-shadow: inset 0 0 0 1.5px var(--acc); }
+.cal .gr .d.today { font-weight: 700; box-shadow: 0 0 0 2px var(--s-fg); }
+.cal-L .gr > * { font-size: 11px; }
+/* 세련된 월간 달력 (중·대) */
+.cal-g { padding: 10px 12px; gap: 6px; }
+.cal-g .ch2 { display: flex; justify-content: space-between; align-items: center; gap: 6px; }
+.cal-g .mo { display: flex; align-items: baseline; gap: 6px; line-height: 1; }
+.cal-g .mo b { font-size: 22px; font-weight: 800; letter-spacing: -.02em; }
+.cal-g .mo small { font-size: 9px; letter-spacing: .14em; font-weight: 700; color: var(--s-muted); }
+.cal-g .ch2 em { font-style: normal; font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 99px; background: color-mix(in srgb, var(--acc) 22%, var(--s-card)); white-space: nowrap; }
+.cal-M .ch2 em { display: none; }
+.cal-g .gr { gap: 3px 2px; }
+.cal-g .gr > * { border-radius: 7px; }
+.cal-g .gr .wd { font-size: 9px; letter-spacing: .04em; color: var(--s-muted); align-self: end; }
+.cal-g .gr .wd.su, .cal-g .gr .d.su { color: #d4503f; }
+.cal-g .gr .wd.sa { color: #3f77c9; }
+.cal-g .gr .d { position: relative; font-weight: 600; }
+.cal-g .gr .d.off { opacity: .35; font-weight: 400; background: none; }
+.cal-g .gr .d.fut { box-shadow: none; background: color-mix(in srgb, var(--acc) 7%, var(--s-card)); }
+.cal-g .gr .d.fut::after { content: ""; position: absolute; bottom: 12%; width: 3px; height: 3px; border-radius: 50%; background: var(--acc); }
+.cal-g .gr .d.today { background: var(--acc); color: var(--on-acc); font-weight: 800; box-shadow: 0 0 0 2px var(--s-card), 0 0 0 3.5px var(--acc); z-index: 1; }
+.cal-g .lg { display: flex; align-items: center; gap: 4px; font-size: 9px; color: var(--s-muted); }
+.cal-g .lg i { width: 11px; height: 11px; border-radius: 4px; background: color-mix(in srgb, var(--acc) var(--p), var(--s-card)); }
+.cal-g .lg .dot { margin-left: auto; display: flex; align-items: center; gap: 4px; }
+.cal-g .lg .dot::before { content: ""; width: 4px; height: 4px; border-radius: 50%; background: var(--acc); }
+/* 달력 (중·대): 둥근 색 칸 + 등급 색 + 아래 범례 */
+.cal-v .wkh { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; text-align: center; font-size: 11px; font-weight: 700; color: var(--s-muted); }
+.cal-v .wkh .su, .cal-v .cgrid .su { color: #d4503f; }
+.cal-v .wkh .sa { color: #3f77c9; }
+.cal-v { gap: 5px; padding: 8px 10px; min-height: 0; }
+.cal-v .cgrid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); grid-template-rows: repeat(var(--rows, 2), minmax(0, 1fr)); gap: 4px; flex: 1; min-height: 0; }
+.cal-v .dd { display: grid; place-items: center; min-width: 0; min-height: 0; width: 100%; height: 100%; border-radius: 10px; border: 1.5px solid rgba(255,255,255,.6); background: color-mix(in srgb, var(--s-fg) 6%, var(--s-card)); color: var(--s-fg); font-size: 11px; font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1; }
+.cal-v .dd.empty { background: none; border-color: transparent; }
+.cal-M.cal-v .dd { font-size: 10px; border-radius: 6px; }
+.cal-M.cal-v .cgrid { gap: 3px; }
+.cal-M.cal-v { padding: 6px 8px; }
+.cal-T.cal-v .dd, .cal-X.cal-v .dd { font-size: 14px; border-radius: 12px; }
+.cal-v .dd.g2 { background: #9CC8FF; color: #1E2A3D; }
+.cal-v .dd.g3 { background: #74AAFF; color: #1E2A3D; }
+.cal-v .dd.g4 { background: #A07DFF; color: #1E1640; }
+.cal-v .dd.fut { background: none; box-shadow: inset 0 0 0 1.5px var(--acc); }
+.cal-v .dd.off { background: none; border-color: transparent; font-weight: 500; opacity: .35; }
+.cal-v .dd.today { box-shadow: 0 0 0 2px var(--s-card), 0 0 0 3.5px var(--acc); z-index: 1; }
+.cal-L.cal-v .cgrid, .cal-L.cal-v .wkh { gap: 5px; }
+.cal-L.cal-v .dd { font-size: 14px; border-radius: 14px; }
+.cal-L.cal-v .wkh { font-size: 13px; }
+.cal-v .lg2 { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 11px; font-weight: 700; color: var(--s-muted); white-space: nowrap; }
+.cal-v .pills { display: flex; gap: 6px; }
+.cal-v .pills i { width: 28px; height: 12px; border-radius: 99px; }
+.cal-S { padding: 6px 8px; }
+.cal-S .wk { display: grid; grid-template-columns: repeat(5, 1fr); gap: 3px; flex: 1; }
+.cal-S .wk span { display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 10px; background: color-mix(in srgb, var(--acc) 14%, var(--s-card)); font-size: 12px; font-weight: 700; line-height: 1.15; font-variant-numeric: tabular-nums; }
+.cal-S .wk small { font-size: 10px; font-weight: 500; color: var(--s-muted); }
+.stk { width: 100%; display: grid; place-items: center; padding: 6px; }
+.stk .row { display: grid; gap: 2px 6px; justify-items: center; align-items: center; }
+.stk-S .row { grid-template-columns: repeat(2, auto); font-size: 34px; }
+.stk-M .row { grid-template-columns: repeat(2, auto); font-size: 52px; }
+.stk-L .row { grid-template-columns: repeat(4, auto); font-size: 60px; }
+.stk .row span { display: block; line-height: 1.1; transform: rotate(var(--r, 0deg)); filter: drop-shadow(0 3px 0 rgba(0,0,0,.12)); }
+.stk-L .row span, .stk-M .row span, .stk-S .row span { padding: 0; }
+.foot { text-align: center; font-size: 12px; color: var(--s-muted); padding: 0 16px 24px; }
+/* Emphasis moods */
+.blk .fx { position: absolute; inset: 0; pointer-events: none; z-index: 5; }
+.m-sparkle { box-shadow: 0 0 0 3px color-mix(in srgb, var(--acc) 40%, transparent), 0 0 20px 5px color-mix(in srgb, var(--acc) 55%, transparent); animation: glow 1.8s ease-in-out infinite; border-radius: var(--s-r, 16px); }
+@keyframes glow { 50% { box-shadow: 0 0 0 5px color-mix(in srgb, var(--acc) 50%, transparent), 0 0 30px 10px color-mix(in srgb, var(--acc) 70%, transparent); } }
+.m-sparkle .fx i { position: absolute; font-style: normal; font-size: 22px; animation: tw 1.4s ease-in-out infinite; }
+.m-sparkle .fx i:nth-child(1) { right: 4px; top: -12px; } .m-sparkle .fx i:nth-child(2) { left: 22px; bottom: -10px; animation-delay: .5s; font-size: 18px; } .m-sparkle .fx i:nth-child(3) { right: 24px; bottom: -8px; animation-delay: .9s; font-size: 14px; }
+@keyframes tw { 50% { transform: scale(1.35) rotate(15deg); opacity: .6; } }
+.m-border { outline: 4px solid var(--acc); outline-offset: 3px; border-radius: var(--s-r, 16px); }
+.m-border .fx b { position: absolute; left: 8px; top: -13px; background: var(--acc); color: var(--on-acc); font-size: 12px; padding: 2px 10px; border-radius: 99px; }
+.m-bubble .fx span { position: absolute; right: 10px; top: -22px; max-width: 88%; background: var(--acc); color: var(--on-acc); font-weight: 700; font-size: 13px; line-height: 1.25; padding: 5px 12px; border-radius: 14px; box-shadow: 0 2px 0 rgba(0,0,0,.2); overflow-wrap: anywhere; }
+.m-bubble .fx span::after { content: ""; position: absolute; left: 18px; bottom: -7px; border: 7px solid transparent; border-top-color: var(--acc); border-bottom: 0; }
+.is-final .blk.final { cursor: default; }
+
+@media (max-width: 899px) {
+  .main { grid-template-columns: minmax(0, 1fr); }
+  .stage { order: -1; position: sticky; top: 0; z-index: 20; background: var(--bg); padding: 10px 0 12px; border-bottom: 1px solid var(--bd); }
+  .stage.final-stage { position: static; border-bottom: 0; }
+  .top h1 { font-size: 26px; }
+  .stepper .lbl { font-size: 13px; }
+  .stepper .lbl b { width: 22px; height: 22px; font-size: 12px; }
+  .panel { padding: 16px; border-radius: 20px; }
+}
+</style>
+
+<div class="app">
+  <header class="top">
+    <h1>나를 아는 점심메뉴</h1>
+    <p>재료를 고르고, 꾸미고, 우리 반 급식 앱을 완성해요!</p>
+  </header>
+  <ol class="stepper" id="stepper" aria-label="진행 단계"></ol>
+  <div class="main" id="main">
+    <section class="panel" id="panel" aria-live="polite"></section>
+    <div class="stage" id="stage">
+      <div class="phone-wrap" id="phoneWrap">
+        <div class="screen skin-wire" id="screen" aria-label="폰 화면 미리보기 360x800"></div>
+      </div>
+      <p class="stage-cap" id="cap"></p>
+    </div>
+  </div>
+</div>
+
+<script>
+const MAT = {
+  menu:   {name:"메뉴이미지", icon:"🍱", desc:"오늘의 급식 사진과 메뉴 이름"},
+  cal:    {name:"달력",       icon:"📅", desc:"급식 있는 날을 색칠해서 보여줘요"},
+  rank:   {name:"랭킹보드",   icon:"🏆", desc:"시상대 · 1·2·3위 한눈에", lines:["1위 돈까스 4.8","2위 치킨꿔바로우 4.7"]},
+  rankhl: {name:"랭킹 강조",  icon:"🏆", desc:"큰 숫자와 사진 카드로 1·2위 강조", lines:["1위 돈까스 4.8","2위 치킨꿔바로우 4.7"]},
+  rankstack:{name:"랭킹 쌓기", icon:"🏆", desc:"1~5위를 알약처럼 차곡차곡 쌓기", lines:["1위 돈까스 4.8","2위 치킨꿔바로우 4.7"]},
+  rankgrad:{name:"랭킹 그라데이션", icon:"🏆", desc:"사진과 색깔 띠로 순위 보기", lines:["1위 돈까스 4.8","2위 치킨꿔바로우 4.7"]},
+  rankobj:{name:"랭킹 오브제", icon:"🏆", desc:"동그란 사진 타일로 순위 보기", lines:["1위 돈까스 4.8","2위 치킨꿔바로우 4.7"]},
+  rankmood:{name:"랭킹 그라디언트무드", icon:"🏆", desc:"물드는 배경 위에 순위 띠", lines:["1위 돈까스 4.8","2위 치킨꿔바로우 4.7"]},
+  /* 더보기: 지금 앱에 있는 재료 */
+  today:  {name:"오늘급식버튼", icon:"🍽️", desc:"오늘 급식으로 바로 가기", lines:["오늘 급식 보기 ›","11월 16일 월요일 급식"]},
+  myrev:  {name:"나의리뷰",   icon:"📒", desc:"내 리뷰 목록 · 즐겨찾기 · 정렬", lines:["11/9 양념찜닭 · 🤤 4점","11/10 돈육불고기 · 😉 3점","♥ 즐겨찾기 3개"]},
+  friend: {name:"친구리뷰",   icon:"💬", desc:"친구들의 블로그형 후기", lines:["하은: 찜닭 국물에 밥 말아먹기!","서준: 불고기+슈크림은 반칙","민지: 백김치가 느끼함 싹!"]},
+  thumb:  {name:"메뉴썸네일", icon:"🖼️", desc:"날짜별 급식 이미지 목록", lines:["11/16 차조밥 · 육개장","11/17 잡곡밥 · 북어콩나물국","11/18 카레라이스"]},
+  quote:  {name:"격언카드",   icon:"📜", desc:"이달의 음식 격언", lines:["“밥이 보약이다”","잘 챙겨 먹는 한 끼가 몸을 든든하게 해요"]},
+  tray:   {name:"식판그림",   icon:"🎨", desc:"그날 급식 일러스트", lines:["오늘 급식 일러스트","식판 위 반찬이 그림으로!"]},
+  board:  {name:"메뉴판",     icon:"📋", desc:"식단 리스트 · 알레르기 번호", lines:["육개장 (5.16)","치킨까스 (1.5.6)","배추김치 (9)"]},
+  allergy:{name:"알레르기",   icon:"⚠️", desc:"알레르기 성분 설명 패널", lines:["난류 · 우유 · 대두","밀 · 돼지고기","내 메뉴의 성분을 알려 줘요"]},
+  grade:  {name:"등급선택",   icon:"😋", desc:"맛잘알 등급 이모지 5단계", lines:["😐 🙂 😉 🤤 👼","오늘 급식은 몇 점?"]},
+  guide:  {name:"등급가이드", icon:"📖", desc:"등급별 한 줄 표현 안내", lines:["😐 영혼 가출 상태","😉 신나서 윙크","👼 천사 링과 날개 장착"]},
+  memo:   {name:"한줄평",     icon:"✏️", desc:"메모 입력", lines:["오늘 급식 한 줄 평가","예: 닭봉구이 순삭!"]},
+  /* 더보기: 새로 있으면 좋은 재료 (제안) */
+  recipe: {name:"계란찜레시피", icon:"🥚", desc:"오늘 식재료로 집에서 만드는 레시피", lines:["계란찜 레시피","집에서 만들어 봐요"], idea:1},
+  nutri:  {name:"영양성분카드", icon:"🥦", desc:"칼로리 · 탄수화물 · 단백질 · 지방 막대", lines:["636 kcal","탄수화물 · 단백질 · 지방"], idea:1},
+  algal:  {name:"알레르기알림", icon:"🔔", desc:"내 알레르기를 등록해 두면 미리 알려 줘요", lines:["내 알레르기 등록","미리 알려 줘요"], idea:1},
+  photo:  {name:"식판사진",   icon:"📷", desc:"내가 찍은 식판 사진을 리뷰에 첨부", lines:["내 식판 사진 올리기","리뷰에 붙여요"], idea:1},
+  left:   {name:"잔반체크",   icon:"🍚", desc:"다 먹었어요 / 조금 남겼어요 + 월간 통계", lines:["다 먹었어요 / 조금 남겼어요","이번 달 통계"], idea:1},
+  home:   {name:"집밥추천",   icon:"🏠", desc:"오늘 급식과 겹치지 않는 저녁 메뉴 제안", lines:["저녁 메뉴 제안","급식과 겹치지 않게"], idea:1},
+  vote:   {name:"메뉴투표",   icon:"🗳️", desc:"다음 달 먹고 싶은 메뉴에 투표", lines:["다음 달 먹고 싶은 메뉴","1위 돈까스 🗳️"], idea:1},
+  streak: {name:"연속기록배지", icon:"🔥", desc:"며칠 연속 기록했는지 배지로 표시", lines:["🔥 5일 연속 기록","연속기록 배지"], idea:1}
+};
+const MAIN = ["cal","tray","rankgrad"];
+const EXTRA_RANK = ["rank","rankhl","rankstack","rankobj","rankmood"];
+const EXTRA_NOW = ["menu","today","myrev","friend","thumb","quote","board","allergy","grade","guide","memo"];
+const EXTRA_IDEA = ["recipe","nutri","algal","left","home","vote","streak"];
+const RANK = [[25,4.8],[26,4.7],[27,4.6]];
+const SZ = {S:{label:"소", dim:"2×1"}, M:{label:"중", dim:"2×2"}, W:{label:"가로", dim:"4×1"}, L:{label:"대", dim:"4×2"}, T:{label:"대+", dim:"4×3"}, X:{label:"특대", dim:"4×4"}};
+const SKINS = [
+  {id:"haru",  name:"그린 파스텔",          desc:"포근하고 산뜻한 연두색"},
+  {id:"jelly", name:"젤리",                 desc:"말랑말랑 반짝반짝 글로시"},
+  {id:"craft", name:"페이퍼",               desc:"바느질 같은 점선, 종이 느낌"},
+  {id:"glass", name:"투명",                 desc:"배경이 비치는 맑은 카드"},
+  {id:"neu",   name:"몰피즘",               desc:"부드러운 그림자로 살짝 솟은 카드"},
+  {id:"illust",name:"일러스트",             desc:"색색의 그라데이션과 팝한 그림자"},
+  {id:"spooky",name:"spooky",               desc:"어두운 네온사인 밤과 호박 불빛"}
+];
+/* "내 무드 쓰기": the typed words are matched against keywords. Unknown words still get a colour made from the text. */
+const T = (keys, name, deco, bg, card, fg, muted, acc, on, bdc, bw, r, sh) => ({keys, name, deco, v: {"--s-bgfull": bg, "--s-card": card, "--s-fg": fg, "--s-muted": muted, "--s-acc": acc, "--s-on": on, "--s-bdc": bdc, "--s-bw": bw, "--s-r": r, "--s-sh": sh}});
+const THEMES = [
+  T(["크리스마스","산타","성탄","christmas","xmas"], "크리스마스", ["🎄","❄️","🎁","⭐"], "linear-gradient(170deg,#0F4D2E,#237A4A)", "#FFF8F0", "#3B1212", "#6B3A3A", "#C8102E", "#FFFFFF", "#C8102E", "3px", "20px", "0 4px 0 rgba(0,0,0,.25)"),
+  T(["할로윈","핼러윈","halloween","호박","유령","귀신"], "할로윈", ["🎃","🦇","👻","🕸️"], "radial-gradient(circle at 80% 0%,#3B1D5E 0%,#1A1024 65%)", "#2A1B3D", "#F6EBFF", "#D1BCEB", "#FF8A1F", "#1A1024", "#7B4BB5", "2px", "18px 18px 6px 18px", "0 0 16px rgba(255,138,31,.35)"),
+  T(["봄","벚꽃","꽃","spring","핑크"], "봄 벚꽃", ["🌸","🌷","🦋","🌼"], "linear-gradient(170deg,#FFE0EC,#FFF7FB)", "#FFFFFF", "#5A2A40", "#85506A", "#D6477F", "#FFFFFF", "#FFC3D9", "2px", "26px", "0 4px 0 rgba(214,71,127,.15)"),
+  T(["여름","바다","휴가","수영","summer","물"], "여름 바다", ["🌊","🐠","☀️","🏖️"], "linear-gradient(170deg,#B5E8FF,#E8FAFF)", "#FFFFFF", "#0B3B5C", "#2E5F80", "#0A7CC4", "#FFFFFF", "#8FD3F4", "2px", "22px", "0 4px 0 rgba(10,124,196,.15)"),
+  T(["가을","단풍","autumn","낙엽"], "가을 단풍", ["🍁","🍂","🌰","🍄"], "linear-gradient(170deg,#F0D6AE,#F8E8CF)", "#FFF7EA", "#4A2B12", "#7A5230", "#B84A12", "#FFFFFF", "#D9A066", "2px", "16px", "3px 3px 0 rgba(120,70,20,.25)"),
+  T(["겨울","눈","winter","얼음","눈사람"], "겨울 눈", ["❄️","⛄","🧤","🎿"], "linear-gradient(170deg,#D6E7FF,#F6FAFF)", "#FFFFFF", "#1D3557", "#44648E", "#2F6FD0", "#FFFFFF", "#B7D2F5", "2px", "22px", "0 4px 0 rgba(47,111,208,.15)"),
+  T(["우주","별","은하","space","로켓"], "우주", ["🚀","🪐","⭐","🌙"], "radial-gradient(circle at 20% 0%,#2B2F7A,#0B1030 65%)", "#1A2147", "#EEF1FF", "#B8C0F0", "#8FA8FF", "#0B1030", "#5566CC", "2px", "18px", "0 0 14px rgba(143,168,255,.35)"),
+  T(["사탕","캔디","달콤","디저트","candy","과자","케이크"], "캔디", ["🍭","🍬","🧁","🍩"], "linear-gradient(170deg,#FFD1EC,#D8F1FF)", "#FFFFFF", "#5B2A5A", "#86508A", "#E0409A", "#FFFFFF", "#FFFFFF", "4px", "30px", "0 6px 0 rgba(224,64,154,.2)"),
+  T(["숲","자연","초록","나무","forest","동물"], "숲속", ["🌲","🍄","🐿️","🌿"], "linear-gradient(170deg,#C8E8C0,#EAF6E3)", "#FFFDF5", "#1F3A22", "#46684A", "#2F7A3B", "#FFFFFF", "#9CCB93", "2px", "20px", "0 4px 0 rgba(47,122,59,.15)"),
+  T(["공주","왕관","유니콘","프린세스","princess"], "공주님", ["👑","🦄","💎","🎀"], "linear-gradient(170deg,#F7DDFF,#FFE9F6)", "#FFFFFF", "#53286B", "#7C4A96", "#A64DC8", "#FFFFFF", "#E3B8F5", "3px", "28px", "0 5px 0 rgba(166,77,200,.2)"),
+  T(["로봇","미래","게임","game","robot","사이버"], "로봇 게임", ["🤖","⚙️","🎮","⚡"], "linear-gradient(170deg,#0A1620,#12293A)", "#12293A", "#E6FBFF", "#9FD3E0", "#00D1B2", "#04201C", "#00D1B2", "2px", "8px", "0 0 12px rgba(0,209,178,.35)"),
+  T(["해적","보물","pirate","모험"], "해적 보물", ["🏴‍☠️","💰","🦜","⚓"], "linear-gradient(170deg,#E6D1A2,#F1E3C0)", "#FFF3D6", "#3B2A14", "#6B5330", "#8C2F0F", "#FFFFFF", "#8C6A33", "3px", "6px", "4px 4px 0 rgba(80,50,10,.3)"),
+  T(["생일","파티","축하","birthday","party"], "생일 파티", ["🎂","🎈","🎉","🎁"], "linear-gradient(170deg,#FFF1A8,#FFD3E6)", "#FFFFFF", "#4A2147", "#7A4876", "#E8453C", "#FFFFFF", "#FFB3C9", "3px", "24px", "0 5px 0 rgba(232,69,60,.2)"),
+  T(["무지개","신나는","rainbow","행복"], "무지개", ["🌈","☁️","⭐","🦄"], "linear-gradient(170deg,#FFD6D6,#FFF2C8 35%,#D6F5D6 65%,#D6E8FF)", "#FFFFFF", "#3E2A6B", "#6A5499", "#7A4FD0", "#FFFFFF", "#CBB8F5", "3px", "26px", "0 5px 0 rgba(122,79,208,.18)"),
+  T(["공룡","dino","쥬라기"], "공룡 나라", ["🦖","🦕","🌴","🥚"], "linear-gradient(170deg,#CDEBB0,#EAF6D8)", "#FFFDF0", "#2D3F14", "#566B2E", "#3E8E2B", "#FFFFFF", "#9CCB6F", "3px", "18px", "3px 4px 0 rgba(62,142,43,.25)")
+];
+function resolveTheme(text) {
+  const t = text.trim().toLowerCase();
+  if (!t) return null;
+  const hit = THEMES.find(th => th.keys.some(k => t.includes(k)));
+  if (hit) return {name: hit.name, deco: hit.deco, v: hit.v, made: false};
+  let h = 0; for (const ch of t) h = (h * 31 + ch.charCodeAt(0)) % 360;
+  const v = {"--s-bgfull": `linear-gradient(170deg,hsl(${h} 85% 90%),hsl(${(h + 40) % 360} 85% 95%))`, "--s-card": "#FFFFFF", "--s-fg": `hsl(${h} 50% 18%)`, "--s-muted": `hsl(${h} 30% 32%)`, "--s-acc": `hsl(${h} 70% 36%)`, "--s-on": "#FFFFFF", "--s-bdc": `hsl(${h} 65% 78%)`, "--s-bw": "3px", "--s-r": "24px", "--s-sh": `0 5px 0 hsl(${h} 60% 80% / .6)`};
+  return {name: text.trim(), deco: ["✨","💫","🌟","🎀"], v, made: true};
+}
+const MOOD_EX = ["크리스마스 스타일","할로윈 스타일","벚꽃 봄","여름 바다","우주","캔디"];
+const MOODS = [
+  {id:"sparkle", name:"크게 반짝", ico:"✨"},
+  {id:"border",  name:"테두리 강조", ico:"🖍️"},
+  {id:"bubble",  name:"말풍선", ico:"💬"},
+  {id:"none",    name:"없음", ico:"➖"}
+];
+const COLORS = [["#2F6F2A","연두"],["#1F78B4","하늘"],["#D6336C","분홍"],["#C9560C","주황"],["#7048D8","보라"]];
+const EMOJIS = ["🍙","🍚","🥕","🍎","🍊","🍓","🥛","🍗","🍰","🐥","⭐","🌈","❤️","😋","🎈","👍"];
+const STEPS = ["재료 배치","스타일링","완성도 높이기","스티커·완성!"];
+const WD = ["일","월","화","수","목","금","토"];
+const MEAL = {
+ 16:["차조밥","육개장","도토리묵무침","치킨까스","배추김치","무지개떡","우유"],
+ 17:["잡곡밥","북어콩나물국","두부양념조림","찹스테이크","배추김치","망고","우유"],
+ 18:["카레라이스","닭다리오븐구이","배추김치","귤","요구르트","양상추샐러드"],
+ 19:["흑미밥","감자수제비","흰살생선튀김","배추김치","연두부양념장","우유","바나나"],
+ 20:["기장밥","햄김치찌개","연근조림","김자반","멘보샤","총각김치","오렌지","우유"],
+ 24:["잡곡밥","조랭이미역국","훈제오리야채볶음","웨지감자구이","배추김치","우유","배"],
+ 25:["흑미밥","감자크림스프","돈까스","배추김치","요구르트","청포도","사과샐러드"],
+ 26:["잡곡밥","해물탕(대구)","치킨꿔바로우","한식교자만두","배추김치","우유","단감"]
+};
+const NEXT_DAYS = Object.keys(MEAL).map(Number);
+const MEAL_DAYS = [2,3,4,5,6,9,10,11,12,13,16,17,18,19,20,24,25,26,27,30];
+const GRADE = {2:3,3:4,4:2,5:3,6:4,9:4,10:3,11:2,12:3,13:3};   // 샘플 맛잘알 등급 (예시)
+const TODAY = 15;
+
+let uid = 1;
+const mkItem = (type, size) => ({id: uid++, type, size});
+const state = {
+  step: 1,
+  items: [],
+  pickType: "menu", pickSize: "M", sel: null, showMore: false,
+  placed: [], selS: null, finished: false,
+  moodText: "", customMode: false, customTheme: null, baseSkin: "haru",
+  skin: "haru", accent: null, appName: "", subTitle: "",
+  focusId: null, mood: "sparkle", bubble: "여기 먼저 봐요!",
+  stickers: ["🍙","🥕","⭐","🍎"]
+};
+state.focusId = null;
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const itemLabel = it => `${MAT[it.type].name} (${SZ[it.size].label})`;
+const MAXI = 8;
+
+/* ---------- Phone ---------- */
+function menuNo(idx) { return state.items.slice(0, idx).filter(x => x.type === "menu").length; }
+function dayOf(idx) { return NEXT_DAYS[menuNo(idx) % NEXT_DAYS.length]; }
+function dayLabel(d) { return `11/${d}(${WD[new Date(2026,10,d).getDay()]})`; }
+function calHTML(size) {
+  if (size === "W") {
+    const wk = [15,16,17,18,19,20,21].map(d => { const meal = MEAL_DAYS.includes(d); return `<span class="${d === TODAY ? "today" : meal ? "" : "off"}"><small>${WD[new Date(2026,10,d).getDay()]}</small>${d}</span>`; }).join("");
+    return `<div class="cal cal-W"><div class="ch"><b>11월 15일 ~ 21일</b><span>이번 주 급식</span></div><div class="wk">${wk}</div></div>`;
+  }
+  if (size === "S") {
+    const wk = [16,17,18,19,20].map((d,i) => `<span><small>${WD[i+1]}</small>${d}</span>`).join("");
+    return `<div class="cal cal-S"><div class="ch"><b>11월 급식 달력</b><span>다음 주</span></div><div class="wk">${wk}</div></div>`;
+  }
+  /* 크기별 칸 구성: 중(2×2)=3주, 대(4×2)=2주(오늘 주부터), 대+/특대(4×3·4×4)=한 달 전체 */
+  const full = size === "T" || size === "X";
+  const rows = full ? 5 : size === "M" ? 3 : 2;
+  /* 11/8(일)부터 보여 줘서 등급이 있는 지난 급식(9~13일), 오늘(15일), 앞으로의 급식이 함께 보여요 */
+  const start = full ? 1 : 8;
+  const wdH = WD.map((w, i) => `<span class="${i === 0 ? "su" : i === 6 ? "sa" : ""}">${w}</span>`).join("");
+  let cells = "";
+  for (let i = 0; i < rows * 7; i++) {
+    const d = start + i;
+    if (d < 1 || d > 30) { cells += `<span class="dd empty"></span>`; continue; }
+    const meal = MEAL_DAYS.includes(d), g = GRADE[d];
+    let cls = "dd";
+    if (!meal) cls += " off"; else if (d > TODAY) cls += " fut"; else if (g) cls += g >= 4 ? " g4" : g === 3 ? " g3" : " g2";
+    if (d === TODAY) cls += " today";
+    cells += `<span class="${cls}">${d}</span>`;
+  }
+  const big = size === "L" || full;
+  const head = `<div class="ch2"><span class="mo"><b>${big ? "11월" : "11"}</b>${big ? `<small>NOVEMBER 2026</small>` : `<small>NOV</small>`}</span><em>급식 ${MEAL_DAYS.length}일</em></div>`;
+  const pills = ["#DDEBFF", "#9CC8FF", "#74AAFF", "#C4B0FF", "#A07DFF"].map(c => `<i style="background:${c}"></i>`).join("");
+  const legend = big ? `<div class="lg2"><span>칸 색 = 내가 준 맛잘알 등급</span><div class="pills">${pills}</div></div>` : "";
+  return `<div class="cal cal-${size} cal-g cal-v" style="--rows:${rows}">${head}<div class="wkh">${wdH}</div><div class="cgrid">${cells}</div>${legend}</div>`;
+}
+function stickerHTML(size) {
+  const n = size === "S" ? 2 : 4, list = state.stickers.length ? state.stickers : ["⭐"];
+  const rot = [-8, 6, -4, 9];
+  const sp = Array.from({length: n}, (_, i) => `<span style="--r:${rot[i]}deg">${list[i % list.length]}</span>`).join("");
+  return `<div class="stk stk-${size}"><div class="row">${sp}</div></div>`;
+}
+function menuHTML(size, day) {
+  const names = MEAL[day], img = `style="background-image:url(meals/day${day}.jpg)"`;
+  if (size === "S") return `<div class="menu-S"><div class="menu-img" ${img}></div><div class="ov"><b>${dayLabel(day)} 급식</b><span>${esc(names.slice(0,2).join(" · "))}</span></div></div>`;
+  if (size === "W") return `<div class="fc menu-W"><div class="menu-img" ${img}></div><div class="tx"><span class="badge">다음 급식 ${dayLabel(day)}</span><span class="tt">${esc(names.slice(0,4).join(" · "))}</span></div></div>`;
+  if (size === "M") return `<div class="fc menu-M"><div class="menu-img" ${img}></div><div class="tx"><span class="badge">다음 급식 ${dayLabel(day)}</span><span class="tt">${esc(names.slice(0,3).join(" · "))}</span></div></div>`;
+  return `<div class="fc menu-L"><div class="menu-img" ${img}></div><div class="tx"><span class="badge">다음 급식 ${dayLabel(day)}</span><ul>${names.slice(0,6).map(n => `<li>${esc(n)}</li>`).join("")}</ul></div></div>`;
+}
+const RK5 = [
+  {n:"돈까스", d:25, a:4.8, img:25}, {n:"치킨꿔바로우", d:26, a:4.7, img:26}, {n:"대패삼겹살구이", d:27, a:4.6, img:24},
+  {n:"햄김치찌개", d:20, a:4.4, img:20}, {n:"찹스테이크", d:17, a:4.3, img:17}
+];
+const rkImg = r => `style="background-image:url(meals/day${r.img}.jpg)"`;
+function rankHTML(size, type = "rank") {
+  const medals = [rkBadge(1), rkBadge(2), rkBadge(3)];
+  if (size === "S") return `<div class="gen gen-S"><span class="gi">${rkBadge(1)}</span><span class="gt"><b>랭킹보드 1위</b><small>${dayLabel(25)} · 평균 4.8</small></span></div>`;
+  if (size === "W") return `<div class="rank rank-W"><div class="ch"><b>${ic("rank")} 랭킹보드</b><span>우리 반 평균 등급</span></div><div class="rw">${RANK.map(([d, a], i) => `<span>${medals[i]} ${d}일 <b>${a.toFixed(1)}</b></span>`).join("")}</div></div>`;
+  const big = size === "T" || size === "X";
+  if (type === "rankstack") {
+    const n = big ? 5 : 3, med = ["🥇 ", "🥈 ", "🥉 ", "", ""];
+    return `<div class="rk2 rk2-stack rk2-${size}"><i class="b1"></i><i class="b2"></i><div class="sl">${RK5.slice(0, n).map((r, i) => `<span class="sp sp${i + 1}" style="width:${100 - i * 7}%">${med[i]}${i + 1}위 · ${r.n} ${r.a.toFixed(1)}</span>`).join("")}</div>${big ? `<small class="smp">샘플 데이터</small>` : ""}</div>`;
+  }
+  if (type === "rankgrad") {
+    const n = {M: 1, L: 2, T: 3, X: 4}[size];
+    return `<div class="rk2 rk2-grad rk2-${size}">${RK5.slice(0, n).map((r, i) => `<div class="gr-row gr${i + 1}"><i class="gp" ${rkImg(r)}></i><span class="gt"><b>${i + 1}위 · ${r.n}</b><small>${dayLabel(r.d)} · 평균 ${r.a.toFixed(1)}</small></span><em>›</em></div>`).join("")}</div>`;
+  }
+  if (type === "rankobj") {
+    const n = {M: 1, L: 2, T: 4, X: 4}[size];
+    return `<div class="rk2 rk2-obj rk2-${size}">${RK5.slice(0, n).map((r, i) => `<div class="ob ob${i + 1}"><span class="ring"><i ${rkImg(r)}></i></span><b>${i + 1}위 ${r.n}</b><small>★ ${r.a.toFixed(1)}</small></div>`).join("")}</div>`;
+  }
+  if (type === "rankmood") {
+    const n = {M: 2, L: 3, T: 3, X: 3}[size];
+    return `<div class="rk2 rk2-mood rk2-${size}"><i class="m1"></i><i class="m2"></i><i class="m3"></i><i class="m4"></i><div class="ml">${RK5.slice(0, n).map((r, i) => `<span>${i + 1}위 · ${r.n} · ${r.a.toFixed(1)}</span>`).join("")}</div></div>`;
+  }
+  if (type === "rankhl") {
+    /* Figma "랭킹보드 강조스타일": 그라데이션 카드 + 큰 숫자 + 기울어진 급식 사진 */
+    const card = i => `<div class="rc rc${i + 1}"><span class="rcn">${i + 1}</span><i class="rci" ${rkImg(RK5[i])}></i><b class="rct">${RK5[i].n}</b><small class="rcs">${dayLabel(RK5[i].d)} · 평균 ${RK5[i].a.toFixed(1)}</small><span class="rcp">보기</span></div>`;
+    const n = size === "M" ? 1 : size === "X" ? 3 : 2;
+    return `<div class="rank rank-${size} rank-hl"><div class="rhd"><small>${ic("rank")} 맛잘알 랭킹</small><b>가장 맛있었던 급식 ›</b>${size === "M" ? "" : `<em>샘플 데이터</em>`}</div><div class="rcs-wrap">${Array.from({length: n}, (_, i) => card(i)).join("")}</div></div>`;
+  }
+  /* 시상대: 2위 · 1위 · 3위 순서, 급식 사진 + 단상 */
+  const pods = [1, 0, 2].map(i => `<div class="pd p${i + 1}"><i class="pimg" ${rkImg(RK5[i])}></i><div class="pbar"><b>${i + 1}위</b>${size !== "M" ? `<small>${RK5[i].a.toFixed(1)}</small>` : ""}</div></div>`).join("");
+  return `<div class="rank rank-${size}${big ? " rank-L" : ""} rank-pod"><div class="ch"><b>${ic("rank")} 랭킹보드</b><span>우리 반 평균 등급</span></div><div class="pods">${pods}</div>${size !== "M" ? `<small class="pcap">평균 등급 ${RK5.slice(0, 3).map(r => r.a.toFixed(1)).join(" · ")} (샘플)</small>` : ""}</div>`;
+}const RNAME = ["돈까스", "치킨꿔바로우", "대패삼겹살구이"];
+/* 2D 라인 아이콘 (이모지 대신) */
+const ICO = {
+  menu:'<rect x="3" y="7" width="18" height="11" rx="2"/><path d="M9 7v11M15 7v11"/>',
+  cal:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',
+  rank:'<path d="M7 4h10v5a5 5 0 0 1-10 0zM7 6H4v1a3 3 0 0 0 3 3M17 6h3v1a3 3 0 0 1-3 3M12 14v4M8 20h8"/>',
+  sticker:'<path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/>',
+  today:'<path d="M7 3v7a2 2 0 0 0 2 2v9M5 3v7M9 3v7M17 3c-2 1.5-3 4-3 7 0 1.5 1 2 3 2v9"/>',
+  myrev:'<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h3"/>',
+  friend:'<path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/>',
+  thumb:'<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="1.5"/><path d="M21 16l-5-5-8 8"/>',
+  quote:'<path d="M9 7H6a2 2 0 0 0-2 2v3h4v4H4M20 7h-3a2 2 0 0 0-2 2v3h4v4h-4"/>',
+  tray:'<path d="M12 3a9 9 0 1 0 0 18c1.5 0 2-1 1.5-2s0-2 1.5-2h2a3 3 0 0 0 3-3c0-6-4-11-8-11z"/><circle cx="8" cy="11" r="1"/><circle cx="12" cy="7.5" r="1"/><circle cx="16" cy="11" r="1"/>',
+  board:'<rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4h6v3H9zM9 12h6M9 16h4"/>',
+  allergy:'<path d="M12 3 2.5 20h19z"/><path d="M12 10v5M12 18v.5"/>',
+  grade:'<circle cx="12" cy="12" r="9"/><path d="M8 14q4 3.5 8 0"/><circle cx="9" cy="10" r=".8"/><circle cx="15" cy="10" r=".8"/>',
+  guide:'<path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M4 19V5M9 8h6"/>',
+  memo:'<path d="M4 20l1-4L16 5l3 3L8 19z"/><path d="M14 7l3 3"/>',
+  recipe:'<path d="M12 3c-4 0-7 6-7 11a7 7 0 0 0 14 0c0-5-3-11-7-11z"/>',
+  nutri:'<path d="M5 20V10M12 20V4M19 20v-7"/>',
+  algal:'<path d="M6 17v-6a6 6 0 0 1 12 0v6l2 2H4z"/><path d="M10 21h4"/>',
+  photo:'<path d="M3 8h4l2-3h6l2 3h4v12H3z"/><circle cx="12" cy="13" r="3.5"/>',
+  left:'<path d="M3 11h18a9 9 0 0 1-18 0z"/><path d="M8 7c0-2 2-2 2-4M14 7c0-2 2-2 2-4"/>',
+  home:'<path d="M3 11 12 4l9 7"/><path d="M5 10v10h14V10M10 20v-6h4v6"/>',
+  vote:'<rect x="4" y="4" width="16" height="16" rx="3"/><path d="M8 12l3 3 5-6"/>',
+  streak:'<path d="M12 3c1 4 5 5 5 10a5 5 0 0 1-10 0c0-2 1-3 2-4 0 2 1 2 1.5 2C10 8 11 5 12 3z"/>',
+  heart:'<path d="M12 20s-8-5-8-11a4.5 4.5 0 0 1 8-2.5A4.5 4.5 0 0 1 20 9c0 6-8 11-8 11z"/>'
+};
+["rankhl","rankstack","rankgrad","rankobj","rankmood"].forEach(k => ICO[k] = ICO.rank);
+const ic = (k, cls = "") => k === "thumb" ? `<span class="ic-img" style="background-image:url(meals/day20.jpg)" aria-hidden="true"></span>` : `<svg class="ic ${cls}" viewBox="0 0 24 24" aria-hidden="true">${ICO[k] || ICO.menu}</svg>`;
+const FACE = {
+  1: '<path d="M8 15.5h8"/><circle cx="9" cy="11" r=".9"/><circle cx="15" cy="11" r=".9"/>',
+  2: '<path d="M8 14.5q4 2.5 8 0"/><circle cx="9" cy="11" r=".9"/><circle cx="15" cy="11" r=".9"/>',
+  3: '<path d="M8 14q4 3.5 8 0M8 11h2.2"/><circle cx="15" cy="11" r=".9"/>',
+  4: '<path d="M8 13.5q4 5 8 0z"/><circle cx="9" cy="10.5" r=".9"/><circle cx="15" cy="10.5" r=".9"/>',
+  5: '<ellipse cx="12" cy="3" rx="4" ry="1.2"/><path d="M8 14q4 4 8 0"/><circle cx="9" cy="11" r=".9"/><circle cx="15" cy="11" r=".9"/>'
+};
+const face = n => `<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13" r="8"/>${FACE[n]}</svg>`;
+const rkBadge = n => `<span class="rkb r${n}">${n}</span>`;
+/* 더보기 재료 완성본 (중·대 크기): c = 중(compact) */
+const XR = {
+  today: c => `<div class="xr xc"><button class="xbtn" tabindex="-1">${c ? "오늘 급식 보기 ›" : "오늘 급식 보기 (11월 15일)"}</button>${c ? `<small>11월 15일 일요일</small>` : ""}</div>`,
+  myrev: c => `<div class="xr">${c ? "" : `<div class="xtabs"><span>최신순</span><b>즐겨찾기순</b><span>등급순</span></div>`}<div class="xcard"><div class="xr1"><b>${ic("heart","fill")} 11/9 (월)</b><small>${face(4)} 4점</small></div><div class="xq">“양념찜닭 맵부심으로 냠냠”</div>${c ? "" : `<small>차조밥 · 소고기미역국 · 양념찜닭</small>`}</div>${c ? "" : `<div class="xcard"><div class="xr1"><b>${ic("heart")} 11/12 (목)</b><small>${face(3)} 3점</small></div></div>`}</div>`,
+  friend: c => `<div class="xr frw${c ? " c" : ""}">${[["하은","haeun",16,"찜닭 국물에 밥 말아먹은 사람 손! 식판이 반짝반짝했어요.","4일 전 · 공감 12"],["서준","seojun",17,"돈육불고기에 슈크림까지 나와서 오늘은 완전 반칙이에요.","5일 전 · 공감 9"]].slice(0, c ? 1 : 2).map(([n, f, d, tx, mt], i) => `<div class="fr-card fr${i}"><span class="fr-av"><img class="ring" src="friends/ring.svg" alt=""><img class="av" src="friends/${f}.png" alt="${n} 프로필"><i class="bd" style="background-image:url(meals/day${d}.jpg)"></i></span><span class="fr-tx"><b>${n}</b>${c ? "" : `<span>${tx}</span>`}<small>${mt}</small></span></div>`).join("")}</div>`,
+  thumb: c => `<div class="xr">${[[20,"카레라이스",4],[19,"오징어떡볶음",3],[18,"비빔밥",2]].slice(0, c ? 2 : 3).map(([d, n, e]) => `<div class="xcard xrow xs1"><i class="xth" style="background-image:url(meals/day${d}.jpg)"></i><span><b>${dayLabel(d)}</b>${c ? "" : `<small>${n}</small>`}</span><em>${face(e)}</em></div>`).join("")}</div>`,
+  quote: c => `<div class="xr xc xq2"><small>11월의 음식 격언</small><b>밥이 보약이다</b>${c ? "" : `<small>잘 챙겨 먹는 한 끼가 몸을 든든하게 해요</small>`}</div>`,
+  tray: c => `<div class="xr xtr"><i style="background-image:url(meals/day16.jpg)"></i>${c ? "" : `<small>그날 급식 일러스트 (3:2)</small>`}</div>`,
+  board: c => `<div class="xr xcard xl2"><b>오늘의 메뉴</b><ul>${["차조밥","소고기미역국 (16)","양념찜닭 (5.6.13.15)","크림라비올리 (1.2.5)","깍두기 (9)"].slice(0, c ? 3 : 5).map(t => `<li>${t}</li>`).join("")}</ul></div>`,
+  allergy: c => `<div class="xr xcard"><b>알레르기 정보</b><div class="xchips">${["새우","우유","밀","대두"].slice(0, c ? 3 : 4).map(t => `<span>${t}</span>`).join("")}</div>${c ? "" : `<small>새우 — 새우, 새우젓. 김치 양념에 자주 쓰여요.<br>우유 — 우유, 치즈, 크림 소스.</small>`}</div>`,
+  grade: c => `<div class="xr xc"><div class="xgr">${[["😐",1],["🙂",2],["😉",3],["🤤",4],["😇",5]].map(([e, n]) => `<span class="${n === 4 ? "on" : ""}">${face(n)}<small>${n}점</small></span>`).join("")}</div>${c ? "" : `<small>🤤 침 흘리며 황홀. 등 뒤에 깃털이 조금씩 날림.</small>`}</div>`,
+  guide: c => `<div class="xr xcard xgd">${[["😐","1점 표정 없음. 영혼 가출 상태."],["🙂","2점 은은한 미소. 무난하게 살아남음."],["😉","3점 신나서 윙크. 발끝이 동실."],["🤤","4점 침 흘려 황홀. 깃털이 날림."],["😇","5점 천사 링과 날개. 후광이 비침."]].slice(0, c ? 3 : 5).map(([e, t], i) => `<div><u style="--k:${(i + 1) * 20}%"></u><span>${face(i + 1)}</span><small>${t}</small></div>`).join("")}</div>`,
+  memo: c => `<div class="xr"><b>한 줄 평가</b><div class="xta">오늘 급식에 대해 한 줄로 남겨 보세요.</div><button class="xbtn" tabindex="-1">저장하기</button></div>`,
+  recipe: c => `<div class="xr xcard"><b>오늘의 집밥 · 계란찜</b><div class="xchips">${["계란 3개","물 180ml","소금 약간","대파"].slice(0, c ? 2 : 4).map(t => `<span>${t}</span>`).join("")}</div><small>1 계란을 풀고 물을 섞어요 (1:1)<br>2 체에 한 번 거르면 부드러워요${c ? "" : "<br>3 약불에서 10분, 뚜껑 덮어 마무리"}</small></div>`,
+  nutri: c => `<div class="xr xcard"><b>영양 성분 · 650 kcal</b>${[["탄수화물",78],["단백질",52],["지방",34],["나트륨",64]].slice(0, c ? 3 : 4).map(([n, v]) => `<div class="xbar"><small>${n}</small><i style="--w:${v}%"></i></div>`).join("")}</div>`,
+  algal: c => `<div class="xr"><div class="xwarn"><b>내일 급식에 새우가 들어 있어요</b>${c ? "" : `<small>내 알레르기에 등록된 성분이에요.</small>`}</div><button class="xbtn alt" tabindex="-1">내 알레르기 설정</button></div>`,
+  photo: c => `<div class="xr xcard xph"><span class="xadd">+<br>사진 추가</span><i style="background-image:url(meals/day17.jpg)"></i>${c ? "" : `<small class="xcap">리뷰에 식판 사진을 붙여요</small>`}</div>`,
+  left: c => `<div class="xr xc"><b>오늘 다 먹었어요?</b><div class="xbt3"><span class="on">싹싹</span><span>조금 남김</span>${c ? "" : "<span>많이 남김</span>"}</div><small>이번 달 싹싹 먹은 날 11 / 13</small><i class="xprog" style="--w:84%"></i></div>`,
+  home: c => `<div class="xr xcard"><b>오늘 저녁은 이런 건 어때요?</b><div class="xq">급식에서 닭고기를 먹었으니<br>두부조림 + 시금치나물</div>${c ? "" : `<small>겹치지 않게 골라 준 메뉴예요.</small>`}</div>`,
+  vote: c => `<div class="xr"><b>12월에 먹고 싶은 메뉴</b>${[["돈까스 32표",100],["치킨 24표",75],["떡볶이 18표",56]].slice(0, c ? 2 : 3).map(([t, w]) => `<div class="xvb" style="--w:${w}%"><b>${t}</b></div>`).join("")}</div>`,
+  streak: c => `<div class="xr xc xst"><span class="xbig">7일</span><b>7일 연속 기록 중이에요</b>${c ? "" : `<small>내일도 쓰면 배지가 한 단계 올라가요</small>`}</div>`
+};
+function genHTML(type, size) {
+  if ((size === "M" || size === "L") && XR[type]) return XR[type](size === "M");
+  const m = MAT[type], ls = m.lines, gic = ic(type);
+  if (size === "S") return `<div class="gen gen-S"><span class="gi">${gic}</span><span class="gt"><b>${m.name}</b><small>${esc(ls[0])}</small></span></div>`;
+  if (size === "W") return `<div class="gen gen-W"><span class="gi">${gic}</span><span class="gt"><b>${m.name}</b>${ls.slice(0,2).map(l => `<small>${esc(l)}</small>`).join("")}</span></div>`;
+  if (size === "M") return `<div class="gen gen-M"><span class="gi">${gic}</span><b>${m.name}</b>${ls.slice(0,3).map(l => `<small>${esc(l)}</small>`).join("")}</div>`;
+  return `<div class="gen gen-L"><div class="gl"><span class="gi">${gic}</span><b>${m.name}</b></div><div class="gr2">${ls.map(l => `<span>${esc(l)}</span>`).join("")}</div></div>`;
+}
+function fxHTML() {
+  if (state.mood === "sparkle") return `<div class="fx"><i>✨</i><i>✨</i><i>⭐</i></div>`;
+  if (state.mood === "border")  return `<div class="fx"><b>★ 꼭 보기</b></div>`;
+  if (state.mood === "bubble")  return `<div class="fx"><span>${esc(state.bubble || "여기 먼저 봐요!")}</span></div>`;
+  return "";
+}
+function blockHTML(it, i) {
+  const final = state.step === 4, deco = state.step >= 2;
+  const emph = deco && state.mood !== "none" && it.id === state.focusId ? " m-" + state.mood : "";
+  const sel = state.step === 1 && state.sel === it.id ? " sel" : "";
+  const m = MAT[it.type], sz = SZ[it.size];
+  let inner;
+  if (final) {
+    const cs = it.size === "T" || it.size === "X" ? "L" : it.size;
+    inner = it.type === "menu" ? menuHTML(cs, dayOf(i)) : it.type === "cal" ? calHTML(it.size) : it.type === "sticker" ? stickerHTML(cs) : it.type.startsWith("rank") ? rankHTML(it.size, it.type) : genHTML(it.type, cs);
+    inner = `<div class="body">${inner.startsWith('<div class="fc') ? inner : `<div class="fc">${inner}</div>`}</div>`;
+  } else {
+    const icon = ic(it.type);
+    inner = `<div class="body"><div class="lab"><span class="ico">${icon}</span><b>${m.name}</b><small>${sz.dim} ${sz.label}</small></div></div>`;
+  }
+  const tools = state.step === 1 ? `<span class="grip" aria-hidden="true">⠿</span><span class="rhandle" aria-hidden="true"></span>${sel ? `<button class="del" data-del="${it.id}" aria-label="${m.name} 지우기">✕</button>` : ""}` : state.step === 4 && !state.finished ? `<span class="grip" aria-hidden="true">⠿</span>` : "";
+  const cls = `blk sz-${it.size} ${final ? "final" : "wire"} ${state.step === 1 || !deco ? "" : "mat"}${state.step >= 2 ? " mat" : ""}${emph}${sel}`.replace(/\s+/g, " ");
+  const attrs = state.step === 1 ? ` tabindex="0" role="button" aria-label="${i + 1}번째 ${itemLabel(it)}. 누르면 선택, 끌면 위치 바꾸기"` : "";
+  const [bw, bh] = SD[it.size];
+  return `<div class="${cls}" data-id="${it.id}" style="grid-column:${it.c} / span ${bw};grid-row:${it.r} / span ${bh}"${attrs}>${inner}${tools}${emph ? fxHTML() : ""}</div>`;
+}
+function renderPhone() {
+  const s = state, scr = $("screen");
+  const cust = s.step >= 2 && s.skin === "custom" && s.customTheme;
+  scr.className = "screen " + (s.step === 1 ? "skin-wire" : cust ? "skin-custom" : "skin-" + (s.skin === "custom" ? s.baseSkin : s.skin));
+  for (const k of ["--s-bgfull","--s-card","--s-fg","--s-muted","--s-acc","--s-on","--s-bdc","--s-bw","--s-r","--s-sh"]) {
+    if (cust) scr.style.setProperty(k, s.customTheme.v[k]); else scr.style.removeProperty(k);
+  }
+  const deco = cust ? `<div class="ph-deco" aria-hidden="true">${s.customTheme.deco.map(e => `<span>${e}</span>`).join("")}</div>` : "";
+  const acc = s.step >= 2 ? s.accent : null;
+  if (acc) { scr.style.setProperty("--user-acc", acc); scr.style.setProperty("--user-on", "#FFFFFF"); }
+  else { scr.style.removeProperty("--user-acc"); scr.style.removeProperty("--user-on"); }
+  const final = s.step === 4;
+  const head = s.step >= 3
+    ? `<div class="ph-head"><span class="nm">${esc(s.appName || "나를 아는 점심메뉴")}</span><span class="dt">${s.subTitle ? esc(s.subTitle) : "11월 15일 일요일 · 오늘은 쉬는 날이에요"}</span></div>`
+    : `<div class="ph-head"><div class="ph-bar"></div><span class="nm">${s.step === 1 ? "앱 이름 자리" : "앱 이름"}</span></div>`;
+  const body = s.items.length
+    ? `<div class="grid" id="grid" style="grid-template-rows:repeat(${Math.max(s.step === 1 ? 9 : 0, ...s.items.map(o => o.r + SD[o.size][1] - 1))},var(--row))">${s.items.map(blockHTML).join("")}</div>`
+    : `<div class="phone-empty">윤곽들이<br>여기에 나타나요</div>`;
+  const oldPs = scr.querySelector(".ph-scroll"), st = oldPs ? oldPs.scrollTop : 0;
+  const sts = final ? s.placed.map(p => `<span class="pst${s.selS === p.id && !s.finished ? " sel" : ""}${s.finished ? " lock" : ""}" data-sid="${p.id}" style="left:${p.x}px;top:${p.y}px;font-size:${Math.round(44 * p.s)}px;--d:${((p.id * 0.37) % 2).toFixed(2)}s">${p.e}${s.selS === p.id && !s.finished ? `<button class="pdel" data-sdel="${p.id}" aria-label="스티커 떼기">✕</button><span class="phandle" aria-label="끌어서 크기 바꾸기">⤡</span>` : ""}</span>`).join("") : "";
+  scr.innerHTML = `<div class="ph-fixed">${deco}${head}</div><div class="ph-scroll" id="phScroll"><div class="ph-inner" id="phInner">${body}${cust ? deco.replace('class="ph-deco"', 'class="ph-deco bot"') : ""}${final ? `<p class="foot">만든 날 2026.11.15 · 내가 만든 나를 아는 점심메뉴 앱</p>` : ""}${sts}</div></div>`;
+  /* The scrolling area is two screens tall; the header above it stays put */
+  const ps = $("phScroll"), vh = ps.clientHeight;
+  $("phInner").style.minHeight = vh * 2 + "px";
+  $("phInner").insertAdjacentHTML("beforeend", `<div class="pgline" style="top:${vh}px" aria-hidden="true"><span>▼ 2쪽</span></div>`);
+  ps.scrollTop = st;
+  $("cap").textContent = s.step === 1 ? "재료를 끌어서 원하는 칸에 놓아요 (빈칸은 그대로 남아요)" : s.step === 4 ? (s.finished ? "짠! 내가 만든 급식 앱이에요. 폰 화면 안에서 스크롤할 수 있어요." : "재료를 끌어 자리를 바꾸고(⠿), 스티커를 끌어서 앱 위에 붙여요.") : "내가 정한 스킨과 제목이 바로 보여요";
+  $("stage").classList.toggle("final-stage", final);
+  fit();
+}
+function fit() {
+  const wrap = $("phoneWrap"), stage = $("stage");
+  const stacked = matchMedia("(max-width: 899px)").matches;
+  const availW = stacked ? (stage.clientWidth || 360) : 380;
+  const final = state.step === 4;
+  const availH = stacked ? (final ? 9999 : Math.max(240, innerHeight * 0.5)) : Math.max(380, innerHeight - 170);
+  const sc = Math.max(0.3, Math.min(1, (availW - 20) / 360, availH / 800));
+  $("screen").style.transform = `scale(${sc})`;
+  wrap.style.width = 360 * sc + "px"; wrap.style.height = 800 * sc + "px";
+  wrap.style.margin = "8px";
+}
+addEventListener("resize", fit);
+
+/* ---------- State actions ---------- */
+/* 자유 배치: 재료마다 칸 위치(c열, r행)를 기억해요. 크기를 줄여도 제자리에 남아요. */
+const SD = {S:[2,1], M:[2,2], W:[4,1], L:[4,2], T:[4,3], X:[4,4]};
+function fits(c, r, w, h, ex) {
+  if (c < 1 || r < 1 || c + w - 1 > 4) return false;
+  return !state.items.some(o => o.id !== ex && o.c != null && c < o.c + SD[o.size][0] && o.c < c + w && r < o.r + SD[o.size][1] && o.r < r + h);
+}
+function findSpot(w, h, ex) {
+  for (let r = 1; r < 60; r++) for (let c = 1; c + w - 1 <= 4; c++) if (fits(c, r, w, h, ex)) return {c, r};
+  return {c: 1, r: 1};
+}
+function addItem() {
+  if (state.items.length >= MAXI) return;
+  const it = mkItem(state.pickType, state.pickSize);
+  Object.assign(it, findSpot(...SD[it.size]));
+  state.items.push(it); state.sel = it.id;
+  renderAll("add");
+}
+function removeItem(id) { state.items = state.items.filter(x => x.id !== id); if (state.sel === id) state.sel = null; renderAll(); }
+function canNudge(it, dir) { return fits(it.c, it.r + dir, ...SD[it.size], it.id); }
+function moveItem(id, dir) {
+  const it = state.items.find(x => x.id === id);
+  if (it && canNudge(it, dir)) { it.r += dir; renderAll(); }
+}
+function cycleSize(id) {
+  const it = state.items.find(x => x.id === id); if (!it) return;
+  const order = ["S","M","L","T","X"]; // W(4×1)는 드래그로만
+  for (let k = 1; k <= 5; k++) {
+    const ns = order[(order.indexOf(it.size) + k) % 5], [w, h] = SD[ns], c = Math.min(it.c, 5 - w);
+    if (fits(c, it.r, w, h, id)) { it.size = ns; it.c = c; break; }
+  }
+  renderAll();
+}
+
+/* ---------- Panel ---------- */
+function orderHTML() {
+  if (!state.items.length) return `<div class="empty">아직 재료가 없어요. 위에서 골라 폰에 넣어 보세요!</div>`;
+  const n = state.items.length;
+  return `<ol class="order">${state.items.map((it, i) => `<li class="${state.sel === it.id ? "sel" : ""}"><span class="n">${i + 1}</span><span class="nm">${MAT[it.type].icon} ${MAT[it.type].name}<small>${SZ[it.size].dim} · ${SZ[it.size].label}</small></span>
+    <button class="ib" data-k="up${it.id}" data-act="up" data-id="${it.id}" aria-label="${itemLabel(it)} 위로" ${!canNudge(it, -1) ? "disabled" : ""}>▲</button>
+    <button class="ib" data-k="dn${it.id}" data-act="down" data-id="${it.id}" aria-label="${itemLabel(it)} 아래로" ${!canNudge(it, 1) ? "disabled" : ""}>▼</button>
+    <button class="ib sz" data-k="sz${it.id}" data-act="size" data-id="${it.id}" aria-label="${itemLabel(it)} 크기 바꾸기">${SZ[it.size].label}↻</button>
+    <button class="ib del" data-k="dl${it.id}" data-act="del" data-id="${it.id}" aria-label="${itemLabel(it)} 지우기">✕</button></li>`).join("")}</ol>`;
+}
+function moodMsg() {
+  const c = state.customTheme;
+  if (state.skin !== "custom" || !c) return "글을 쓰면 폰 화면이 그 분위기로 바뀌어요.";
+  return c.made ? `“${esc(c.name)}” 무드는 내 맘대로 색을 만들었어요! ${c.deco[0]}` : `${c.deco[0]} ${c.name} 무드로 꾸몄어요!`;
+}
+function applyMood(text) {
+  state.moodText = text;
+  const th = resolveTheme(text);
+  if (th) { state.customTheme = th; state.skin = "custom"; } else { state.customTheme = null; state.skin = state.baseSkin; }
+}
+function panelHTML() {
+  const s = state;
+  if (s.step === 1) return `
+    <h2>1. 재료를 골라 놓아요</h2>
+    <p class="lead">마음에 드는 블록을 <b>콕!</b> 누르면 오른쪽 폰에 들어가요.</p>
+    <div class="matrix">${MAIN.map((k, r) => [k, MAT[k], r]).map(([k, m, r]) => `<div class="mrow"><p class="mname"><span class="memo" aria-hidden="true">${m.icon}</span><br>재료${r + 1}<br><b>${m.name}</b></p>
+      ${Object.entries(SZ).filter(([z]) => z !== "W" && z !== "T" && z !== "X").map(([z, d]) => `<div class="mcol ${z}"><span class="mcap">${{S:"Small",M:"Medium",W:"Wide",L:"Large"}[z]}</span><button class="tile ${z}" data-k="t${k}${z}" data-act="addTile" data-t="${k}" data-v="${z}" aria-label="${m.name} ${d.label} ${d.dim} 폰에 넣기" ${s.items.length >= MAXI ? "disabled" : ""}>${k === "menu" ? m.name + "<br>" : ""}${d.dim.replace("×", "x")}크기</button></div>`).join("")}</div>`).join("")}</div>
+    <button class="btn more" data-k="more" data-act="more" aria-expanded="${s.showMore}" aria-controls="moreBox">${s.showMore ? "▲ 접기" : `▼ 더보기 · 랭킹 모음과 다른 재료 ${EXTRA_RANK.length + EXTRA_NOW.length + EXTRA_IDEA.length}개`}</button>
+    ${s.showMore ? `<div class="more" id="moreBox">${[["🏆 랭킹 모음 (순위를 보여 주는 5가지 스타일)", EXTRA_RANK], ["지금 앱에 있는 재료", EXTRA_NOW], ["새로 있으면 좋은 재료 (제안)", EXTRA_IDEA]].map(([h, ks]) => `<h3>${h}</h3><ul class="xl">${ks.map(k => { const m = MAT[k]; return `<li class="${m.idea ? "idea" : ""}"><span class="xi">${ic(k)}</span><span class="xt"><b>${m.name}</b><small>${m.desc}</small></span><span class="xs">${Object.entries(SZ).filter(([z]) => z !== "W" && z !== "T" && z !== "X").map(([z, d]) => `<button class="xb" data-k="x${k}${z}" data-act="addTile" data-t="${k}" data-v="${z}" aria-label="${m.name} ${d.label} ${d.dim} 폰에 넣기" ${s.items.length >= MAXI ? "disabled" : ""}>${{S:"Small",M:"Medium",L:"Large"}[z]}</button>`).join("")}</span></li>`; }).join("")}</ul>`).join("")}</div>` : ""}
+    ${s.items.length >= MAXI ? `<p class="hint warn">재료는 ${MAXI}개까지 넣을 수 있어요.</p>` : ""}
+    <div class="sec"><h3>폰 속 재료</h3>
+      <p class="hint">폰 화면에서 재료를 끌어 원하는 칸에 놓아요. 모서리 파란 ⤡를 끌면 크기가 바뀌고, 크기를 줄여도 제자리에 있어요. ▲▼는 한 칸씩 위아래로 옮겨요. ✕는 지우기예요.</p>
+      ${orderHTML()}</div>`;
+  if (s.step === 2) return `
+    <h2>2. 어떤 느낌으로 만들까요?</h2>
+    <p class="lead">스킨을 고르면 폰 화면의 재료가 그 질감으로 바뀌어요.</p>
+    <div class="choices" role="radiogroup" aria-label="스킨">${SKINS.map(k => `<button class="choice skin skin-${k.id}" role="radio" aria-checked="${!s.customMode && s.skin === k.id}" data-k="sk${k.id}" data-act="skin" data-v="${k.id}">
+      <span class="mini"><span class="mat a"></span><span class="mat"></span><span class="mat"></span></span>
+      <span class="tx"><b>${k.name}</b><span>${k.desc}</span></span></button>`).join("")}
+      <button class="choice" role="radio" aria-checked="${!!s.customMode}" data-k="skcustom" data-act="skinCustom"><span class="ico" aria-hidden="true">✍️</span><span class="tx"><b>스킨 직접입력</b><span>내가 쓴 분위기로 만들어요</span></span></button></div>
+    ${s.customMode ? `<div class="sec mood-box"><h3>✍️ 어떤 분위기로 만들까요?</h3>
+      <label class="field"><span class="hint">쓰고 싶은 분위기를 적어 봐요</span><input id="moodText" maxlength="20" value="${esc(s.moodText)}" placeholder="예: 크리스마스 스타일, 할로윈 스타일" autocomplete="off"></label>
+      <div class="chips">${MOOD_EX.map(m => `<button class="chip" data-k="mx${m}" data-act="moodEx" data-v="${m}">${m}</button>`).join("")}</div>
+      <p class="hint" id="moodRes" role="status">${moodMsg()}</p></div>` : ""}`;
+  if (s.step === 3) {
+    const f = s.items.find(x => x.id === s.focusId);
+    return `
+    <h2>3. 완성도 높이기</h2>
+    <p class="lead">제목과 포인트를 더해 앱을 다듬어요. 하나씩 바꿀 때마다 폰 화면에 바로 나타나요.</p>
+    <div class="sec"><h3>타이틀</h3>
+      <label class="field"><span class="hint">앱 맨 위에 보일 제목을 써 봐요 (14글자까지)</span><input id="appName" maxlength="14" value="${esc(s.appName)}" placeholder="예: 상화의 맛도리" autocomplete="off"></label>
+      <label class="field"><span class="hint">제목 아래 작은 글 (선택, 20글자까지)</span><input id="subTitle" maxlength="20" value="${esc(s.subTitle)}" placeholder="예: 오늘 뭐 먹지?" autocomplete="off"></label></div>
+    <div class="sec"><h3>가장 눈에 띄게 할 재료 1개</h3>
+      <div class="chips">${s.items.map((it, i) => `<button class="chip" aria-pressed="${s.focusId === it.id}" data-k="fo${it.id}" data-act="focus" data-id="${it.id}">${i + 1}번 ${MAT[it.type].icon} ${MAT[it.type].name}</button>`).join("")}</div></div>
+    <div class="sec"><h3>강조 무드</h3>
+      <div class="chips">${MOODS.map(m => `<button class="chip" aria-pressed="${s.mood === m.id}" data-k="md${m.id}" data-act="mood" data-v="${m.id}">${m.ico} ${m.name}</button>`).join("")}</div>
+      ${s.mood === "bubble" ? `<label class="field"><span class="hint">말풍선에 쓸 말</span><input id="bubble" maxlength="14" value="${esc(s.bubble)}" autocomplete="off"></label>` : ""}</div>
+    <div class="sec"><h3>포인트 색</h3>
+      <div class="chips"><button class="swatch auto" aria-pressed="${!s.accent}" data-k="ac-auto" data-act="accent" data-v="" aria-label="스킨 기본 색">기본</button>${COLORS.map(([c, n]) => `<button class="swatch" style="background:${c}" aria-pressed="${s.accent === c}" aria-label="${n}색" data-k="ac${c}" data-act="accent" data-v="${c}"></button>`).join("")}</div></div>
+    <p class="hint">Done을 누르면 완성된 앱이 나타나요. 스티커는 그다음에 마음대로 붙여요!</p>`;
+  }
+  const sk = SKINS.find(k => k.id === s.skin), mo = MOODS.find(m => m.id === s.mood), fi = s.items.find(x => x.id === s.focusId);
+  if (!s.finished) {
+    const ps = s.placed.find(x => x.id === s.selS);
+    return `
+    <h2>4. 스티커로 꾸며요</h2>
+    <p class="lead">앱이 나왔어요! 아래 스티커를 <b>끌어서</b> 앱 위에 붙여 보세요. 그냥 누르면 가운데에 붙어요.</p>
+    <div class="sec"><h3>스티커 통</h3>
+      <div class="chips">${EMOJIS.map(e => `<button class="emo sk" data-e="${e}" data-k="sk-${e}" aria-label="${e} 스티커 붙이기">${e}</button>`).join("")}</div></div>
+    <div class="sec"><h3>붙인 스티커 <span class="hint">· ${s.placed.length}개</span></h3>
+      ${ps ? `<div class="chips"><span class="picked">${ps.e} 선택됨</span><button class="chip" data-k="sbig" data-act="sbig">＋ 크게</button><button class="chip" data-k="ssmall" data-act="ssmall">－ 작게</button><button class="chip" data-k="sdel" data-act="sdel">✕ 떼기</button></div>
+        <label class="field"><span class="hint">크기 조절 (스티커 모서리의 파란 ⤡ 동그라미를 끌어도 돼요)</span><input class="rng" id="sSize" type="range" min="0.5" max="3" step="0.1" value="${ps.s}" aria-label="스티커 크기"></label>`
+          : `<p class="hint">${s.placed.length ? "붙인 스티커를 누르면 크기를 바꾸거나 뗄 수 있어요. 끌면 옮겨져요." : "아직 붙인 스티커가 없어요."}</p>`}
+      ${s.placed.length ? `<button class="chip" data-k="sclear" data-act="sclear">모두 떼기</button>` : ""}</div>
+    <p class="hint">다 붙였으면 [완성!]을 눌러요.</p>`;
+  }
+  return `
+    <h2>🎉 완성! 내 급식 앱이에요</h2>
+    <div class="done-card pop"><b>${esc(s.appName || "나를 아는 점심메뉴")}</b>
+      <span>스킨: ${s.skin === "custom" && s.customTheme ? "내 무드 · " + esc(s.customTheme.name) : (SKINS.find(k => k.id === (s.skin === "custom" ? s.baseSkin : s.skin)) || sk).name}</span>
+      <span>강조: ${fi && s.mood !== "none" ? `${itemLabel(fi)} · ${mo.name}` : "없음"}</span>
+      <span>붙인 스티커: ${s.placed.length}개</span></div>
+    <div class="sec"><h3>중요한 순서대로 놓았어요</h3>
+      <ol class="order">${s.items.map((it, i) => `<li><span class="n">${i + 1}</span><span class="nm">${MAT[it.type].icon} ${MAT[it.type].name}<small>${SZ[it.size].dim} · ${SZ[it.size].label}${it.id === s.focusId && s.mood !== "none" ? " · 강조!" : ""}</small></span></li>`).join("")}</ol></div>
+    <p class="hint">큰 재료는 한눈에 읽히고, 모든 눌러도 되는 곳은 손가락 크기(44px)보다 크게 만들었어요. 가장 중요한 재료가 맨 위에 있어요.</p>`;
+}
+const NAV = [
+  ["", "다음: 스타일링 ›"], ["‹ 이전", "다음: 완성도 높이기 ›"], ["‹ 이전", "✨ Done!"], ["‹ 완성도 높이기로", "🎉 완성!"]
+];
+const NAV_FIN = ["‹ 스티커 더 붙이기", "처음부터 다시"];
+function renderPanel(key) {
+  const s = state, p = $("panel");
+  const nv = s.step === 4 && s.finished ? NAV_FIN : NAV[s.step - 1];
+  p.innerHTML = panelHTML() + `<div class="nav">
+    <button class="btn" id="prev" data-k="prev" ${s.step === 1 ? "disabled" : ""}>${nv[0] || "‹ 이전"}</button>
+    <button class="btn primary big" id="next" data-k="next" ${s.step === 1 && !s.items.length ? "disabled" : ""}>${nv[1]}</button></div>
+    ${s.step === 1 && !s.items.length ? `<p class="hint warn">재료를 1개 이상 넣어야 다음으로 갈 수 있어요.</p>` : ""}`;
+  if (key) { const el = p.querySelector(`[data-k="${CSS.escape(key)}"]`); if (el && !el.disabled) el.focus({preventScroll: true}); }
+}
+function renderStepper() {
+  $("stepper").innerHTML = STEPS.map((n, i) => `<li class="${i + 1 < state.step ? "done" : i + 1 === state.step ? "now" : ""}" ${i + 1 === state.step ? 'aria-current="step"' : ""}><div class="bar"><i></i></div><div class="lbl"><b>${i + 1 < state.step ? "✓" : i + 1}</b><span>${n}</span></div></li>`).join("");
+}
+function renderAll(keepKey) {
+  const a = document.activeElement;
+  const key = keepKey === "add" ? "add" : (a && a.dataset && a.dataset.k) || null;
+  if (!state.items.some(x => x.id === state.focusId)) state.focusId = state.items[0] ? state.items[0].id : null;
+  renderStepper(); renderPanel(key); renderPhone();
+}
+function goStep(n) {
+  state.step = Math.max(1, Math.min(4, n)); state.sel = null; state.selS = null; state.finished = false;
+  renderAll(); toTop();
+}
+function toTop() { $("panel").scrollTop = 0; $("main").scrollTop = 0; }
+
+/* ---------- Events ---------- */
+$("panel").addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return;
+  if (b.id === "prev") { if (state.step === 4 && state.finished) { state.finished = false; return renderAll(); } return goStep(state.step - 1); }
+  if (b.id === "next") {
+    if (state.step === 4) {
+      if (!state.finished) { state.finished = true; state.selS = null; renderAll(); return toTop(); }
+      state.items = []; state.focusId = null; state.mood = "sparkle"; state.accent = null; state.skin = "haru"; state.baseSkin = "haru"; state.customMode = false; state.moodText = ""; state.customTheme = null; state.placed = []; state.finished = false; return goStep(1);
+    }
+    return goStep(state.step + 1);
+  }
+  const id = Number(b.dataset.id), v = b.dataset.v;
+  switch (b.dataset.act) {
+    case "pickType": state.pickType = v; break;
+    case "pickSize": state.pickSize = v; break;
+    case "more": state.showMore = !state.showMore; break;
+    case "addTile": state.pickType = b.dataset.t; state.pickSize = v; return addItem();
+    case "up": return moveItem(id, -1);
+    case "down": return moveItem(id, 1);
+    case "size": return cycleSize(id);
+    case "del": return removeItem(id);
+    case "skin": state.skin = v; state.baseSkin = v; state.moodText = ""; state.customTheme = null; state.customMode = false; break;
+    case "skinCustom": state.customMode = true; applyMood(state.moodText); break;
+    case "moodEx": applyMood(v); break;
+    case "focus": state.focusId = id; break;
+    case "mood": state.mood = v; break;
+    case "accent": state.accent = v || null; break;
+    case "sbig": case "ssmall": {
+      const p = state.placed.find(x => x.id === state.selS);
+      if (p) p.s = Math.max(0.5, Math.min(3, Math.round((p.s + (b.dataset.act === "sbig" ? 0.3 : -0.3)) * 10) / 10));
+      break;
+    }
+    case "sdel": state.placed = state.placed.filter(x => x.id !== state.selS); state.selS = null; break;
+    case "sclear": state.placed = []; state.selS = null; break;
+    default: return;
+  }
+  renderAll();
+});
+$("panel").addEventListener("input", e => {
+  if (e.target.id === "appName") { state.appName = e.target.value; renderPhone(); }
+  if (e.target.id === "subTitle") { state.subTitle = e.target.value; renderPhone(); }
+  if (e.target.id === "bubble") { state.bubble = e.target.value; renderPhone(); }
+  if (e.target.id === "sSize") {
+    const p = state.placed.find(x => x.id === state.selS);
+    if (p) { p.s = Number(e.target.value); const el = scr.querySelector(`[data-sid="${p.id}"]`); if (el) el.style.fontSize = Math.round(44 * p.s) + "px"; }
+  }
+  if (e.target.id === "moodText") {
+    applyMood(e.target.value); renderPhone();
+    $("moodRes").textContent = moodMsg();
+  }
+});
+
+/* Phone: select, delete, drag to reorder (mouse anywhere, touch from the ⠿ handle) */
+const scr = $("screen");
+let drag = null;
+scr.addEventListener("click", e => {
+  const d = e.target.closest(".del");
+  if (d) { removeItem(Number(d.dataset.del)); }
+});
+scr.addEventListener("keydown", e => {
+  const b = e.target.closest(".blk.wire"); if (!b || state.step !== 1) return;
+  const id = Number(b.dataset.id);
+  if (e.key === "Enter" || e.key === " ") { e.preventDefault(); state.sel = state.sel === id ? null : id; renderPhone(); renderPanel(); const n = scr.querySelector(`[data-id="${id}"]`); if (n) n.focus(); }
+  if (e.key === "Delete" || e.key === "Backspace") { e.preventDefault(); removeItem(id); }
+});
+scr.addEventListener("pointerdown", e => {
+  const reorder4 = state.step === 4 && !state.finished;
+  if ((state.step !== 1 && !reorder4) || e.target.closest(".del") || e.target.closest(".pst")) return;
+  const rh = state.step === 1 ? e.target.closest(".rhandle") : null;
+  if (rh) {
+    const rb = rh.closest(".blk"), rr = rb.getBoundingClientRect();
+    rs = {id: Number(rb.dataset.id), l: rr.left, t: rr.top};
+    e.preventDefault();
+    addEventListener("pointermove", rMove); addEventListener("pointerup", rUp); addEventListener("pointercancel", rUp);
+    return;
+  }
+  const blk = e.target.closest(reorder4 ? ".blk.final" : ".blk.wire"); if (!blk) return;
+  if (e.pointerType === "touch" && !e.target.closest(".grip")) return;
+  drag = {id: Number(blk.dataset.id), blk, x: e.clientX, y: e.clientY, on: false, ghost: null, over: null};
+  addEventListener("pointermove", onMove); addEventListener("pointerup", onUp); addEventListener("pointercancel", onCancel);
+});
+function onMove(e) {
+  if (!drag) return;
+  if (!drag.on) {
+    if (Math.hypot(e.clientX - drag.x, e.clientY - drag.y) < 8) return;
+    drag.on = true;
+    const r = drag.blk.getBoundingClientRect();
+    const g = drag.blk.cloneNode(true);
+    const gsc = scr.getBoundingClientRect().width / 360, cs = getComputedStyle(scr);
+    for (const k of ["--s-bgfull","--s-card","--s-fg","--s-muted","--s-acc","--s-on","--s-bdc","--s-bw","--s-r","--s-sh","--acc","--on-acc"]) g.style.setProperty(k, cs.getPropertyValue(k));
+    g.className += " " + scr.className.replace("screen", "").trim();
+    g.classList.add("ghost"); g.classList.remove("sel"); g.style.width = r.width / gsc + "px"; g.style.height = r.height / gsc + "px"; g.style.transformOrigin = "0 0"; g.style.transform = `scale(${gsc * 1.03})`; g.style.position = "fixed";
+    g.style.left = r.left + "px"; g.style.top = r.top + "px"; g.dataset.dx = e.clientX - r.left; g.dataset.dy = e.clientY - r.top;
+    document.body.appendChild(g); drag.ghost = g; drag.blk.classList.add("dragging");
+  }
+  e.preventDefault();
+  const g = drag.ghost;
+  g.style.left = e.clientX - g.dataset.dx + "px"; g.style.top = e.clientY - g.dataset.dy + "px";
+  const it = state.items.find(x => x.id === drag.id), [w, h] = SD[it.size];
+  const gr = $("grid").getBoundingClientRect(), sc = scr.getBoundingClientRect().width / 360;
+  let c = Math.round(((e.clientX - g.dataset.dx - gr.left) / sc - 16) / 84) + 1, r = Math.round(((e.clientY - g.dataset.dy - gr.top) / sc - 16) / 84) + 1;
+  c = Math.max(1, Math.min(5 - w, c)); r = Math.max(1, r);
+  drag.tgt = {c, r}; drag.ok = fits(c, r, w, h, drag.id);
+  const p = drag.ph || (drag.ph = document.createElement("div"));
+  p.className = "dph" + (drag.ok ? "" : " bad"); p.style.gridColumn = `${c} / span ${w}`; p.style.gridRow = `${r} / span ${h}`;
+  if (!p.parentNode) $("grid").appendChild(p);
+}
+function endDrag() {
+  removeEventListener("pointermove", onMove); removeEventListener("pointerup", onUp); removeEventListener("pointercancel", onCancel);
+  if (drag && drag.ghost) drag.ghost.remove();
+  if (drag && drag.ph) drag.ph.remove();
+}
+function onUp() {
+  if (!drag) return;
+  const d = drag; endDrag(); drag = null;
+  if (!d.on) { if (state.step === 1) { state.sel = state.sel === d.id ? null : d.id; renderPhone(); renderPanel(); } return; }
+  if (d.ok) { const it = state.items.find(x => x.id === d.id); it.c = d.tgt.c; it.r = d.tgt.r; state.sel = d.id; renderAll(); } else renderPhone();
+}
+function onCancel() { endDrag(); drag = null; renderPhone(); }
+
+/* Drag the ⤡ corner of a block to stretch it: wide -> 4x1 / 대 4x2 / 4x3 / 4x4 by height, narrow -> 중(2x2) or 소(2x1) */
+let rs = null;
+function rMove(e) {
+  if (!rs) return;
+  e.preventDefault();
+  const sc = scr.getBoundingClientRect().width / 360;
+  const w = (e.clientX - rs.l) / sc, h = (e.clientY - rs.t) / sc;
+  const rows = h > 118 ? Math.min(4, 2 + Math.floor((h - 118) / 84)) : 1;
+  const ns = w > 244 ? ["W","W","L","T","X"][rows] : rows > 1 ? "M" : "S";
+  const it = state.items.find(x => x.id === rs.id);
+  if (it && it.size !== ns) {
+    const [nw, nh] = SD[ns], nc = Math.min(it.c, 5 - nw);
+    if (fits(nc, it.r, nw, nh, it.id)) { it.size = ns; it.c = nc; state.sel = it.id; renderPhone(); }
+  }
+}
+function rUp() {
+  removeEventListener("pointermove", rMove); removeEventListener("pointerup", rUp); removeEventListener("pointercancel", rUp);
+  rs = null; renderAll();
+}
+
+/* ---------- Stickers: drag from the tray onto the app, or drag placed ones to move ---------- */
+let uidS = 1, sd = null;
+function toPhone(cx, cy) {
+  const ps = $("phScroll"), r = ps.getBoundingClientRect(), sc = scr.getBoundingClientRect().width / 360;
+  return {x: Math.round((cx - r.left) / sc), y: Math.round((cy - r.top) / sc + ps.scrollTop)};
+}
+function overPhone(cx, cy) { const r = scr.getBoundingClientRect(); return cx >= r.left && cx <= r.right && cy >= r.top && cy <= r.bottom; }
+function addSticker(e, x, y) {
+  const p = {id: uidS++, e, x: Math.max(20, Math.min(340, x)), y: Math.max(20, y), s: 1};
+  state.placed.push(p); state.selS = p.id; renderAll();
+}
+$("panel").addEventListener("pointerdown", ev => {
+  const b = ev.target.closest(".sk"); if (!b || state.step !== 4 || state.finished) return;
+  sd = {kind: "new", e: b.dataset.e, x: ev.clientX, y: ev.clientY, on: false, ghost: null};
+  addEventListener("pointermove", sMove); addEventListener("pointerup", sUp); addEventListener("pointercancel", sCancel);
+});
+scr.addEventListener("pointerdown", ev => {
+  if (state.step !== 4 || state.finished) return;
+  if (ev.target.closest(".pdel")) return;
+  const hd = ev.target.closest(".phandle");
+  if (hd) {
+    const pe = hd.closest(".pst");
+    sd = {kind: "resize", id: Number(pe.dataset.sid), el: pe, x: ev.clientX, y: ev.clientY, on: true};
+    ev.preventDefault();
+    addEventListener("pointermove", sMove); addEventListener("pointerup", sUp); addEventListener("pointercancel", sCancel);
+    return;
+  }
+  const el = ev.target.closest(".pst"); if (!el) return;
+  const id = Number(el.dataset.sid), p = state.placed.find(x => x.id === id); if (!p) return;
+  const pt = toPhone(ev.clientX, ev.clientY);
+  sd = {kind: "move", id, el, x: ev.clientX, y: ev.clientY, on: false, ox: p.x - pt.x, oy: p.y - pt.y};
+  ev.preventDefault();
+  addEventListener("pointermove", sMove); addEventListener("pointerup", sUp); addEventListener("pointercancel", sCancel);
+});
+scr.addEventListener("click", ev => {
+  const d = ev.target.closest(".pdel");
+  if (d) { state.placed = state.placed.filter(x => x.id !== Number(d.dataset.sdel)); state.selS = null; renderAll(); }
+});
+function sMove(ev) {
+  if (!sd) return;
+  if (!sd.on) {
+    if (Math.hypot(ev.clientX - sd.x, ev.clientY - sd.y) < 6) return;
+    sd.on = true;
+    if (sd.kind === "new") { const g = document.createElement("div"); g.className = "sghost"; g.textContent = sd.e; document.body.appendChild(g); sd.ghost = g; }
+  }
+  ev.preventDefault();
+  if (sd.kind === "new") { sd.ghost.style.left = ev.clientX + "px"; sd.ghost.style.top = ev.clientY + "px"; sd.ghost.classList.toggle("ok", overPhone(ev.clientX, ev.clientY)); }
+  else if (sd.kind === "resize") {
+    const p = state.placed.find(x => x.id === sd.id), r = sd.el.getBoundingClientRect(), sc = scr.getBoundingClientRect().width / 360;
+    const dist = Math.hypot(ev.clientX - (r.left + r.width / 2), ev.clientY - (r.top + r.height / 2)) / sc;
+    p.s = Math.max(0.5, Math.min(3, Math.round(dist / 30 * 20) / 20));
+    sd.el.style.fontSize = Math.round(44 * p.s) + "px";
+  } else {
+    const p = state.placed.find(x => x.id === sd.id), pt = toPhone(ev.clientX, ev.clientY);
+    p.x = Math.max(10, Math.min(350, pt.x + sd.ox)); p.y = Math.max(10, pt.y + sd.oy);
+    sd.el.style.left = p.x + "px"; sd.el.style.top = p.y + "px";
+  }
+}
+function sEnd() { removeEventListener("pointermove", sMove); removeEventListener("pointerup", sUp); removeEventListener("pointercancel", sCancel); if (sd && sd.ghost) sd.ghost.remove(); }
+function sUp(ev) {
+  if (!sd) return;
+  const d = sd; sEnd(); sd = null;
+  if (d.kind === "new") {
+    if (!d.on) { const r = scr.getBoundingClientRect(), sc = r.width / 360; return addSticker(d.e, 180 + Math.round(Math.random() * 120 - 60), Math.round($("phScroll").scrollTop + 260 + Math.random() * 120 - 60)); }
+    if (overPhone(ev.clientX, ev.clientY)) { const pt = toPhone(ev.clientX, ev.clientY); addSticker(d.e, pt.x, pt.y); }
+    return;
+  }
+  if (!d.on) state.selS = state.selS === d.id ? null : d.id; else state.selS = d.id;
+  renderAll();
+}
+function sCancel() { sEnd(); sd = null; renderPhone(); }
+
+renderAll();
+</script>

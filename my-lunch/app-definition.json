@@ -1,0 +1,841 @@
+{
+  "_about": "나만의 급식 앱 만들기 — 앱 정의(재료·크기·스킨·무드·테마) JSON 추출본",
+  "grid": {
+    "columns": 4,
+    "rowHeightPx": 76,
+    "gapPx": 8,
+    "phone": {
+      "width": 360,
+      "height": 800
+    },
+    "sizes": {
+      "S": {
+        "cols": 2,
+        "rows": 1
+      },
+      "M": {
+        "cols": 2,
+        "rows": 2
+      },
+      "W": {
+        "cols": 4,
+        "rows": 1,
+        "note": "숨김 크기: 끌어서 늘일 때만 적용"
+      },
+      "L": {
+        "cols": 4,
+        "rows": 2
+      }
+    }
+  },
+  "steps": [
+    "재료 배치",
+    "스타일링",
+    "완성도 높이기",
+    "스티커·완성!"
+  ],
+  "maxItems": 8,
+  "materials": [
+    {
+      "id": "menu",
+      "name": "메뉴이미지",
+      "desc": "오늘의 급식 사진과 메뉴 이름",
+      "group": "main",
+      "sizes": [
+        "S",
+        "M",
+        "L"
+      ]
+    },
+    {
+      "id": "cal",
+      "name": "달력",
+      "desc": "급식 있는 날을 색칠해서 보여줘요",
+      "group": "main",
+      "sizes": [
+        "S",
+        "M",
+        "L"
+      ]
+    },
+    {
+      "id": "rank",
+      "name": "랭킹보드",
+      "desc": "우리 반 평균 등급 순위",
+      "group": "main",
+      "sizes": [
+        "S",
+        "M",
+        "L"
+      ]
+    },
+    {
+      "id": "myrev",
+      "name": "나의리뷰",
+      "desc": "내 리뷰 목록 · 즐겨찾기 · 정렬",
+      "group": "extra-existing",
+      "sizes": [
+        "S",
+        "M",
+        "L"
+      ]
+    },
+    {
+      "id": "friend",
+      "name": "친구리뷰",
+      "desc": "친구들의 블로그형 후기",
+      "group": "extra-existing",
+      "sizes": [
+        "S",
+        "M",
+        "L"
+      ]
+    },
+    {
+      "id": "thumb",
+      "name": "메뉴썸네일",
+      "desc": "날짜별 급식 이미지 목록",
+      "group": "extra-existing",
+      "sizes": [
+        "S",
+        "M",
+        "L"
+      ]
+    },
+    {
+      "id": "quote",
+      "name": "격언카드",
+      "desc": "이달의 음식 격언",
+      "group": "extra-existing",
+      "sizes": [
+        "S",
+        "M",
+        "L"
+      ]
+    },
+    {
+      "id": "tray",
+      "name": "식판그림",
+      "desc": "그날 급식 일러스트",
+      "group": "extra-existing",
+      "sizes": [
+        "S",
+        "M",
+        "L"
+      ]
+    },
+    {
+      "id": "board",
+      "name": "메뉴판",
+      "desc": "식단 리스트 · 알레르기 번호",
+      "group": "extra-existing",
+      "sizes": [
+        "S",
+        "M",
+        "L"
+      ]
+    },
+    {
+      "id": "allergy",
+      "name": "알레르기",
+      "desc": "알레르기 성분 설명 패널",
+      "group": "extra-existing",
+      "sizes": [
+        "S",
+        "M",
+        "L"
+      ]
+    },
+    {
+      "id": "grade",
+      "name": "등급선택",
+      "desc": "맛잘알 등급 이모지 5단계",
+      "group": "extra-existing",
+      "sizes": [
+        "S",
+        "M",
+        "L"
+      ]
+    },
+    {
+      "id": "guide",
+      "name": "등급가이드",
+      "desc": "등급별 한 줄 표현 안내",
+      "group": "extra-existing",
+      "sizes": [
+        "S",
+        "M",
+        "L"
+      ]
+    },
+    {
+      "id": "memo",
+      "name": "한줄평",
+      "desc": "메모 입력",
+      "group": "extra-existing",
+      "sizes": [
+        "S",
+        "M",
+        "L"
+      ]
+    },
+    {
+      "id": "recipe",
+      "name": "계란찜레시피",
+      "desc": "오늘 식재료로 집에서 만드는 레시피",
+      "group": "extra-proposed",
+      "sizes": [
+        "S",
+        "M",
+        "L"
+      ]
+    },
+    {
+      "id": "nutri",
+      "name": "영양성분카드",
+      "desc": "칼로리 · 탄수화물 · 단백질 · 지방 막대",
+      "group": "extra-proposed",
+      "sizes": [
+        "S",
+        "M",
+        "L"
+      ]
+    },
+    {
+      "id": "algal",
+      "name": "알레르기알림",
+      "desc": "내 알레르기를 등록해 두면 미리 알려 줘요",
+      "group": "extra-proposed",
+      "sizes": [
+        "S",
+        "M",
+        "L"
+      ]
+    },
+    {
+      "id": "left",
+      "name": "잔반체크",
+      "desc": "다 먹었어요 / 조금 남겼어요 + 월간 통계",
+      "group": "extra-proposed",
+      "sizes": [
+        "S",
+        "M",
+        "L"
+      ]
+    },
+    {
+      "id": "home",
+      "name": "집밥추천",
+      "desc": "오늘 급식과 겹치지 않는 저녁 메뉴 제안",
+      "group": "extra-proposed",
+      "sizes": [
+        "S",
+        "M",
+        "L"
+      ]
+    },
+    {
+      "id": "vote",
+      "name": "메뉴투표",
+      "desc": "다음 달 먹고 싶은 메뉴에 투표",
+      "group": "extra-proposed",
+      "sizes": [
+        "S",
+        "M",
+        "L"
+      ]
+    },
+    {
+      "id": "streak",
+      "name": "연속기록배지",
+      "desc": "며칠 연속 기록했는지 배지로 표시",
+      "group": "extra-proposed",
+      "sizes": [
+        "S",
+        "M",
+        "L"
+      ]
+    }
+  ],
+  "skins": [
+    {
+      "id": "haru",
+      "name": "하루콩풍 연두 파스텔",
+      "desc": "포근하고 산뜻한 연두색"
+    },
+    {
+      "id": "jelly",
+      "name": "젤리",
+      "desc": "말랑말랑 반짝반짝 글로시"
+    },
+    {
+      "id": "craft",
+      "name": "종이 크래프트",
+      "desc": "바느질 같은 점선, 종이 느낌"
+    },
+    {
+      "id": "neon",
+      "name": "네온 팝",
+      "desc": "어두운 밤에 빛나는 불빛"
+    },
+    {
+      "id": "pop",
+      "name": "팝 만화",
+      "desc": "굵은 선과 그림자, 만화책처럼"
+    },
+    {
+      "id": "glass",
+      "name": "투명",
+      "desc": "유리처럼 비치는 맑은 카드"
+    },
+    {
+      "id": "illust",
+      "name": "일러스트",
+      "desc": "손으로 그린 듯한 선과 동그란 점무늬"
+    },
+    {
+      "id": "spooky",
+      "name": "spooky",
+      "desc": "으스스한 보라 밤과 호박 불빛"
+    }
+  ],
+  "moods": [
+    {
+      "id": "sparkle",
+      "name": "크게 반짝",
+      "ico": "✨"
+    },
+    {
+      "id": "border",
+      "name": "테두리 강조",
+      "ico": "🖍️"
+    },
+    {
+      "id": "bubble",
+      "name": "말풍선",
+      "ico": "💬"
+    },
+    {
+      "id": "none",
+      "name": "없음",
+      "ico": "➖"
+    }
+  ],
+  "accentColors": [
+    [
+      "#2F6F2A",
+      "연두"
+    ],
+    [
+      "#1F78B4",
+      "하늘"
+    ],
+    [
+      "#D6336C",
+      "분홍"
+    ],
+    [
+      "#C9560C",
+      "주황"
+    ],
+    [
+      "#7048D8",
+      "보라"
+    ]
+  ],
+  "customMoodExamples": [
+    "크리스마스 스타일",
+    "할로윈 스타일",
+    "벚꽃 봄",
+    "여름 바다",
+    "우주",
+    "캔디"
+  ],
+  "customMoodThemes": [
+    {
+      "keys": [
+        "크리스마스",
+        "산타",
+        "성탄",
+        "christmas",
+        "xmas"
+      ],
+      "name": "크리스마스",
+      "deco": [
+        "🎄",
+        "❄️",
+        "🎁",
+        "⭐"
+      ],
+      "v": {
+        "--s-bgfull": "linear-gradient(170deg,#0F4D2E,#237A4A)",
+        "--s-card": "#FFF8F0",
+        "--s-fg": "#3B1212",
+        "--s-muted": "#6B3A3A",
+        "--s-acc": "#C8102E",
+        "--s-on": "#FFFFFF",
+        "--s-bdc": "#C8102E",
+        "--s-bw": "3px",
+        "--s-r": "20px",
+        "--s-sh": "0 4px 0 rgba(0,0,0,.25)"
+      }
+    },
+    {
+      "keys": [
+        "할로윈",
+        "핼러윈",
+        "halloween",
+        "호박",
+        "유령",
+        "귀신"
+      ],
+      "name": "할로윈",
+      "deco": [
+        "🎃",
+        "🦇",
+        "👻",
+        "🕸️"
+      ],
+      "v": {
+        "--s-bgfull": "radial-gradient(circle at 80% 0%,#3B1D5E 0%,#1A1024 65%)",
+        "--s-card": "#2A1B3D",
+        "--s-fg": "#F6EBFF",
+        "--s-muted": "#D1BCEB",
+        "--s-acc": "#FF8A1F",
+        "--s-on": "#1A1024",
+        "--s-bdc": "#7B4BB5",
+        "--s-bw": "2px",
+        "--s-r": "18px 18px 6px 18px",
+        "--s-sh": "0 0 16px rgba(255,138,31,.35)"
+      }
+    },
+    {
+      "keys": [
+        "봄",
+        "벚꽃",
+        "꽃",
+        "spring",
+        "핑크"
+      ],
+      "name": "봄 벚꽃",
+      "deco": [
+        "🌸",
+        "🌷",
+        "🦋",
+        "🌼"
+      ],
+      "v": {
+        "--s-bgfull": "linear-gradient(170deg,#FFE0EC,#FFF7FB)",
+        "--s-card": "#FFFFFF",
+        "--s-fg": "#5A2A40",
+        "--s-muted": "#85506A",
+        "--s-acc": "#D6477F",
+        "--s-on": "#FFFFFF",
+        "--s-bdc": "#FFC3D9",
+        "--s-bw": "2px",
+        "--s-r": "26px",
+        "--s-sh": "0 4px 0 rgba(214,71,127,.15)"
+      }
+    },
+    {
+      "keys": [
+        "여름",
+        "바다",
+        "휴가",
+        "수영",
+        "summer",
+        "물"
+      ],
+      "name": "여름 바다",
+      "deco": [
+        "🌊",
+        "🐠",
+        "☀️",
+        "🏖️"
+      ],
+      "v": {
+        "--s-bgfull": "linear-gradient(170deg,#B5E8FF,#E8FAFF)",
+        "--s-card": "#FFFFFF",
+        "--s-fg": "#0B3B5C",
+        "--s-muted": "#2E5F80",
+        "--s-acc": "#0A7CC4",
+        "--s-on": "#FFFFFF",
+        "--s-bdc": "#8FD3F4",
+        "--s-bw": "2px",
+        "--s-r": "22px",
+        "--s-sh": "0 4px 0 rgba(10,124,196,.15)"
+      }
+    },
+    {
+      "keys": [
+        "가을",
+        "단풍",
+        "autumn",
+        "낙엽"
+      ],
+      "name": "가을 단풍",
+      "deco": [
+        "🍁",
+        "🍂",
+        "🌰",
+        "🍄"
+      ],
+      "v": {
+        "--s-bgfull": "linear-gradient(170deg,#F0D6AE,#F8E8CF)",
+        "--s-card": "#FFF7EA",
+        "--s-fg": "#4A2B12",
+        "--s-muted": "#7A5230",
+        "--s-acc": "#B84A12",
+        "--s-on": "#FFFFFF",
+        "--s-bdc": "#D9A066",
+        "--s-bw": "2px",
+        "--s-r": "16px",
+        "--s-sh": "3px 3px 0 rgba(120,70,20,.25)"
+      }
+    },
+    {
+      "keys": [
+        "겨울",
+        "눈",
+        "winter",
+        "얼음",
+        "눈사람"
+      ],
+      "name": "겨울 눈",
+      "deco": [
+        "❄️",
+        "⛄",
+        "🧤",
+        "🎿"
+      ],
+      "v": {
+        "--s-bgfull": "linear-gradient(170deg,#D6E7FF,#F6FAFF)",
+        "--s-card": "#FFFFFF",
+        "--s-fg": "#1D3557",
+        "--s-muted": "#44648E",
+        "--s-acc": "#2F6FD0",
+        "--s-on": "#FFFFFF",
+        "--s-bdc": "#B7D2F5",
+        "--s-bw": "2px",
+        "--s-r": "22px",
+        "--s-sh": "0 4px 0 rgba(47,111,208,.15)"
+      }
+    },
+    {
+      "keys": [
+        "우주",
+        "별",
+        "은하",
+        "space",
+        "로켓"
+      ],
+      "name": "우주",
+      "deco": [
+        "🚀",
+        "🪐",
+        "⭐",
+        "🌙"
+      ],
+      "v": {
+        "--s-bgfull": "radial-gradient(circle at 20% 0%,#2B2F7A,#0B1030 65%)",
+        "--s-card": "#1A2147",
+        "--s-fg": "#EEF1FF",
+        "--s-muted": "#B8C0F0",
+        "--s-acc": "#8FA8FF",
+        "--s-on": "#0B1030",
+        "--s-bdc": "#5566CC",
+        "--s-bw": "2px",
+        "--s-r": "18px",
+        "--s-sh": "0 0 14px rgba(143,168,255,.35)"
+      }
+    },
+    {
+      "keys": [
+        "사탕",
+        "캔디",
+        "달콤",
+        "디저트",
+        "candy",
+        "과자",
+        "케이크"
+      ],
+      "name": "캔디",
+      "deco": [
+        "🍭",
+        "🍬",
+        "🧁",
+        "🍩"
+      ],
+      "v": {
+        "--s-bgfull": "linear-gradient(170deg,#FFD1EC,#D8F1FF)",
+        "--s-card": "#FFFFFF",
+        "--s-fg": "#5B2A5A",
+        "--s-muted": "#86508A",
+        "--s-acc": "#E0409A",
+        "--s-on": "#FFFFFF",
+        "--s-bdc": "#FFFFFF",
+        "--s-bw": "4px",
+        "--s-r": "30px",
+        "--s-sh": "0 6px 0 rgba(224,64,154,.2)"
+      }
+    },
+    {
+      "keys": [
+        "숲",
+        "자연",
+        "초록",
+        "나무",
+        "forest",
+        "동물"
+      ],
+      "name": "숲속",
+      "deco": [
+        "🌲",
+        "🍄",
+        "🐿️",
+        "🌿"
+      ],
+      "v": {
+        "--s-bgfull": "linear-gradient(170deg,#C8E8C0,#EAF6E3)",
+        "--s-card": "#FFFDF5",
+        "--s-fg": "#1F3A22",
+        "--s-muted": "#46684A",
+        "--s-acc": "#2F7A3B",
+        "--s-on": "#FFFFFF",
+        "--s-bdc": "#9CCB93",
+        "--s-bw": "2px",
+        "--s-r": "20px",
+        "--s-sh": "0 4px 0 rgba(47,122,59,.15)"
+      }
+    },
+    {
+      "keys": [
+        "공주",
+        "왕관",
+        "유니콘",
+        "프린세스",
+        "princess"
+      ],
+      "name": "공주님",
+      "deco": [
+        "👑",
+        "🦄",
+        "💎",
+        "🎀"
+      ],
+      "v": {
+        "--s-bgfull": "linear-gradient(170deg,#F7DDFF,#FFE9F6)",
+        "--s-card": "#FFFFFF",
+        "--s-fg": "#53286B",
+        "--s-muted": "#7C4A96",
+        "--s-acc": "#A64DC8",
+        "--s-on": "#FFFFFF",
+        "--s-bdc": "#E3B8F5",
+        "--s-bw": "3px",
+        "--s-r": "28px",
+        "--s-sh": "0 5px 0 rgba(166,77,200,.2)"
+      }
+    },
+    {
+      "keys": [
+        "로봇",
+        "미래",
+        "게임",
+        "game",
+        "robot",
+        "사이버"
+      ],
+      "name": "로봇 게임",
+      "deco": [
+        "🤖",
+        "⚙️",
+        "🎮",
+        "⚡"
+      ],
+      "v": {
+        "--s-bgfull": "linear-gradient(170deg,#0A1620,#12293A)",
+        "--s-card": "#12293A",
+        "--s-fg": "#E6FBFF",
+        "--s-muted": "#9FD3E0",
+        "--s-acc": "#00D1B2",
+        "--s-on": "#04201C",
+        "--s-bdc": "#00D1B2",
+        "--s-bw": "2px",
+        "--s-r": "8px",
+        "--s-sh": "0 0 12px rgba(0,209,178,.35)"
+      }
+    },
+    {
+      "keys": [
+        "해적",
+        "보물",
+        "pirate",
+        "모험"
+      ],
+      "name": "해적 보물",
+      "deco": [
+        "🏴‍☠️",
+        "💰",
+        "🦜",
+        "⚓"
+      ],
+      "v": {
+        "--s-bgfull": "linear-gradient(170deg,#E6D1A2,#F1E3C0)",
+        "--s-card": "#FFF3D6",
+        "--s-fg": "#3B2A14",
+        "--s-muted": "#6B5330",
+        "--s-acc": "#8C2F0F",
+        "--s-on": "#FFFFFF",
+        "--s-bdc": "#8C6A33",
+        "--s-bw": "3px",
+        "--s-r": "6px",
+        "--s-sh": "4px 4px 0 rgba(80,50,10,.3)"
+      }
+    },
+    {
+      "keys": [
+        "생일",
+        "파티",
+        "축하",
+        "birthday",
+        "party"
+      ],
+      "name": "생일 파티",
+      "deco": [
+        "🎂",
+        "🎈",
+        "🎉",
+        "🎁"
+      ],
+      "v": {
+        "--s-bgfull": "linear-gradient(170deg,#FFF1A8,#FFD3E6)",
+        "--s-card": "#FFFFFF",
+        "--s-fg": "#4A2147",
+        "--s-muted": "#7A4876",
+        "--s-acc": "#E8453C",
+        "--s-on": "#FFFFFF",
+        "--s-bdc": "#FFB3C9",
+        "--s-bw": "3px",
+        "--s-r": "24px",
+        "--s-sh": "0 5px 0 rgba(232,69,60,.2)"
+      }
+    },
+    {
+      "keys": [
+        "무지개",
+        "신나는",
+        "rainbow",
+        "행복"
+      ],
+      "name": "무지개",
+      "deco": [
+        "🌈",
+        "☁️",
+        "⭐",
+        "🦄"
+      ],
+      "v": {
+        "--s-bgfull": "linear-gradient(170deg,#FFD6D6,#FFF2C8 35%,#D6F5D6 65%,#D6E8FF)",
+        "--s-card": "#FFFFFF",
+        "--s-fg": "#3E2A6B",
+        "--s-muted": "#6A5499",
+        "--s-acc": "#7A4FD0",
+        "--s-on": "#FFFFFF",
+        "--s-bdc": "#CBB8F5",
+        "--s-bw": "3px",
+        "--s-r": "26px",
+        "--s-sh": "0 5px 0 rgba(122,79,208,.18)"
+      }
+    },
+    {
+      "keys": [
+        "공룡",
+        "dino",
+        "쥬라기"
+      ],
+      "name": "공룡 나라",
+      "deco": [
+        "🦖",
+        "🦕",
+        "🌴",
+        "🥚"
+      ],
+      "v": {
+        "--s-bgfull": "linear-gradient(170deg,#CDEBB0,#EAF6D8)",
+        "--s-card": "#FFFDF0",
+        "--s-fg": "#2D3F14",
+        "--s-muted": "#566B2E",
+        "--s-acc": "#3E8E2B",
+        "--s-on": "#FFFFFF",
+        "--s-bdc": "#9CCB6F",
+        "--s-bw": "3px",
+        "--s-r": "18px",
+        "--s-sh": "3px 4px 0 rgba(62,142,43,.25)"
+      }
+    }
+  ],
+  "sampleData": {
+    "mealDays": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      9,
+      10,
+      11,
+      12,
+      13,
+      16,
+      17,
+      18,
+      19,
+      20,
+      24,
+      25,
+      26,
+      27,
+      30
+    ],
+    "gradeByDay": {
+      "2": 3,
+      "3": 4,
+      "4": 2,
+      "5": 3,
+      "6": 4,
+      "9": 4,
+      "10": 3,
+      "11": 2,
+      "12": 3,
+      "13": 3
+    },
+    "today": 15
+  },
+  "exampleDesign": {
+    "appName": "상화의 맛도리",
+    "subTitle": "오늘 뭐 먹지?",
+    "skin": "haru",
+    "accent": null,
+    "mood": "sparkle",
+    "items": [
+      {
+        "type": "menu",
+        "size": "M",
+        "col": 1,
+        "row": 1
+      },
+      {
+        "type": "cal",
+        "size": "M",
+        "col": 3,
+        "row": 1
+      },
+      {
+        "type": "rank",
+        "size": "W",
+        "col": 1,
+        "row": 3
+      }
+    ]
+  }
+}
